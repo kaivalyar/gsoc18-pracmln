@@ -6,9 +6,21 @@
     <description>Recent content on Markov Logic Networks in Python: PracMLN</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
+    <lastBuildDate>Sat, 26 May 2018 15:25:41 +0530</lastBuildDate>
     
 	<atom:link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Markov Logic Networks: An Introduction</title>
+      <link>https://kaivalyar.github.io/gsoc18-pracmln/posts/markov-logic-networks-an-introduction/</link>
+      <pubDate>Sat, 26 May 2018 15:25:41 +0530</pubDate>
+      
+      <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/markov-logic-networks-an-introduction/</guid>
+      <description>Markov Logic Networks Markov Logic Networks are a powerful generalisation of Probabilistic and Logic Based Models.
+PracMLN PracMLN is a Python based implementation of MLNs.
+GSoC 18 As part of this project, under GSoC 2018, I plan to port parts of PracMLN to Cython.</description>
+    </item>
     
   </channel>
 </rss>
