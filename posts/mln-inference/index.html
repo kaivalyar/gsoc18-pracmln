@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>MLN Inference &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        MLN Inference
+                    </h1>
+                    <h2 class="headline">
+                    Jun 8, 2018 00:52
+                    · 817 words
+                    · 4 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>The inference module of PracMLN allows the user to well, perform inference using PracMLN. As per my GSoC proposal, this was the first portion of PracMLN I intended to speedup. Until few weeks ago, however, my only usage of PracMLN was limited to the GUI <em>mlnlearn</em> and <em>mlnquery</em> tools. To speedup the inference module via Cython, I had to first be able to use it. Thankfully, the documentation contains a handy <a href="http://pracmln.org/apidoc.html">reference</a>. The <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/test.py">test files</a> also provided helpful insight in using PracMLN from Python.</p>
+
+<p>Armed with this knowledge, I set about editing my first file, <em>exact.py</em>, adding typing information to variables. Along with reading the Cython documentation, which could be terse at times, I found the following video very helpful to get started.
+
+<div style="position: relative; padding-bottom: 56.25%; padding-top: 30px; height: 0; overflow: hidden;">
+  <iframe src="//www.youtube.com/embed/mXuEoqK4bEc" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" allowfullscreen frameborder="0" title="YouTube Video"></iframe>
+</div>
+</p>
+
+<h1 id="code-testing">Code Testing</h1>
+
+<p>As I proceeded, I realised there was no way for me to figure out if the changes I made weren&rsquo;t breaking the code - and were indeed resulting in faster runtimes. A discussion with Daniel Nyga about this led me to realise, that in heading off straight to edit PracMLN code files, I was actually skipping the first and most important step of the process: code testing.</p>
+
+<p>A quick test script later, I realised that no matter what edits I made (including added <code>print</code> statements), there were no effects on my output. Three frustration filled days and nights later, I realised I hadn&rsquo;t setup my work environment correctly.</p>
+
+<p><strong>Note to Self: A good setup takes some time, but eventually saves even more time!</strong></p>
+
+<h1 id="pracmln-setup">PracMLN Setup</h1>
+
+<p>Here is how PracMLN needs to be setup for development on a (linux) computer.</p>
+
+<pre><code class="language-bash">... $ git clone https://github.com/danielnyga/pracmln
+... $ cd pracmln
+... $ ln -s _version python3/pracmln/_version
+... $ PYTHONPATH=&quot;${PYTHONPATH}:/ ... /pracmln/python3/&quot;
+... $ export PYTHONPATH
+</code></pre>
+
+<p>As you can see, after cloning the repo, a link needs to be inserted to the <code>_version</code> directory from inside the <code>python3/pracmln</code> folder. It is also essential to modify the <code>PYTHONPATH</code>. I spent a lot of time trying alternate ways to do this (different <code>setup.py</code> installs, various <code>pip</code> versions, etc), to avoid manually tweaking the <code>PYTHONPATH</code>, but to no avail. If you can figure out a different way to do this, please let me know!</p>
+
+<p>Since my work involved comparing the runtimes of Python and Cython, I supplemented this with a setup where I had two virtual environments:
+1. A virtualenv with pip version downgraded to 9.0.3, and pracmln installed via pip, for use as a baseline when measuring runtimes. When using this, I would ensure that pracmln was explicitly removed from the <code>PYTHONPATH</code>.
+2. A virtualenv with all the pracmln requirements installed, but without pracmln itself. When using this environment, I could see the effect my edits were causing.</p>
+
+<p>I was now ready to start testing my code using the following script (modified for MC-SAT).</p>
+
+<script src="//gist.github.com/kaivalyar/38eedc29dc3f23565b370c296c32850a.js"></script>
+
+<p><strong>The speedup obtained thus was &hellip; negligible.</strong></p>
+
+<h1 id="deciphering-pracmln">Deciphering PracMLN</h1>
+
+<p>This was initially rather dissapointing, but in hindsight, should have been expected. Merely typing a few local variables doesn&rsquo;t really modify the behaviour of the computationally intensive portions any codebase. At the moment, however, I was very uncertain about this, or how to proceed. I would use the Cython anootation tool extensively (<code>... $ cython -a ...</code>), generate HTML files displaying a lot of yellow lines, hinting at possible optimisations, and then not know what to do about them. I decided to plough through the rest of the inference related code anyways, line by line, arbitrarily typing a few variables here and there.</p>
+
+<p><strong>It did not help. At all.</strong></p>
+
+<p>This is plainly visible in the runtimes that can be inspected <a href="https://github.com/kaivalyar/PracTests/">here</a>. After discussing this with my mentor, Daniel Nyga, it became apparent that there was a lot more work to be done. Extensive use of Cython <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html">extension types</a> needed to be made, to port the actual <em>rate determining</em> parts of PracMLN to statically compilable code. I had actually thought about this before, but abandoned the approach, because I was unable to understand clearly enough the class hierarchy of PracMLN. My lack of expertise in Markov Logic Networks didn&rsquo;t help either. In fact, the UML diagrams I had generated to try to understand this were incredibly daunting.</p>
+
+<p>
+<figure>
+    
+        <img src="/media/classes.png" />
+    
+    
+    <figcaption>
+        <h4>UML Class Diagram for PracMLN (Python3)</h4>
+        
+    </figcaption>
+    
+</figure>
+
+
+<figure>
+    
+        <img src="/media/packages.png" />
+    
+    
+    <figcaption>
+        <h4>UML Package Diagram for PracMLN (Python3)</h4>
+        
+    </figcaption>
+    
+</figure>
+</p>
+
+<p>Completely human readable diagram available on <a href="https://imgur.com/a/t1Jxi8P">imgur</a>.</p>
+
+<h1 id="a-new-direction">A New Direction</h1>
+
+<p>Clearly, my GSoC project has many unanticipated challenges. But, as Daniel Nyga pointed out - every project does! It was naive of me to believe that my current knowledge would be sufficient to bring immense speedups to PracMLN within 2 weeks. While I don&rsquo;t yet have any significant speedups to show for my work, I have learnt a lot of lessons! I have tried documenting some of them here. I will now try to surmount my fear of complex UML diagrams, revisit <em>exact.pyx</em>, and try to convert it entirely into a Cython extension type. I hope to have more positive content for my next blog post!</p>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github-square"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2018 <i class="fa fa-heart" aria-hidden="true"></i> Kaivalya Rawal
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+
+
+
+
+    </body>
+</html>

@@ -3,8 +3,23 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/markov-logic-networks-an-introduction/</loc>
+    <loc>https://kaivalyar.github.io/gsoc18-pracmln/about/</loc>
+    <lastmod>2018-06-11T05:34:47+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/mln-inference/</loc>
+    <lastmod>2018-06-08T00:52:55+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/pracmln-and-markov-logic-networks/</loc>
     <lastmod>2018-05-26T15:25:41+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/welcome/</loc>
+    <lastmod>2018-05-25T01:40:26+05:30</lastmod>
   </url>
   
   <url>
@@ -14,13 +29,13 @@
   
   <url>
     <loc>https://kaivalyar.github.io/gsoc18-pracmln/</loc>
-    <lastmod>2018-05-26T15:25:41+05:30</lastmod>
+    <lastmod>2018-06-08T00:52:55+05:30</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/</loc>
-    <lastmod>2018-05-26T15:25:41+05:30</lastmod>
+    <lastmod>2018-06-08T00:52:55+05:30</lastmod>
     <priority>0</priority>
   </url>
   

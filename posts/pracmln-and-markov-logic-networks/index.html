@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>PracMLN and Markov Logic Networks &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        PracMLN and Markov Logic Networks
+                    </h1>
+                    <h2 class="headline">
+                    May 26, 2018 15:25
+                    · 510 words
+                    · 3 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>Markov Logic Networks are a powerful generalisation of Probabilistic and Logic Based Models. I first learnt about these just a few months back, when I learnt about PracMLN via GSoC. As far as I understand, a Markov Logic Network - MLN for short, consists of various statements in First-Order Logic, like any logical model does. What makes it special, however, and immensely more powerful, is that each statement in this model is assigned a weight. These weights can be translated into probabilities, and thus form a model of the world that can handle uncertainty. This is how MLNs model the world.</p>
+
+<h1 id="pracmln">PracMLN</h1>
+
+<p><a href="http://pracmln.org/">PracMLN</a> is a statistical relational learning toolbox, written in Python. It was developed at the <a href="http://ai.uni-bremen.de">Institute for Artificial Intelligence</a>, at the University of Bremen. The use of MLNs typically involves a two step process. In the first, an MLN is designed, and the training process assigns weights to various logical formulae based upon an evidence database. In the second, step, a trained MLN is queried to perform inference required for a specific task. PracMLN provides implementations of many algorithms that perform either exact or approximate learning and inference.</p>
+
+<h1 id="python-for-ai">Python for AI</h1>
+
+<p>AI and Python mix very well together. As of May 2018, Python is the 4th most popular language on the <a href="https://www.tiobe.com/tiobe-index/">TIOBE index</a>. Within the data science and AI community, Python is by far the most popular language being used, with open-source frameworks such as <a href="https://github.com/scikit-learn/scikit-learn/stargazers">Scikit-Learn</a>, <a href="https://github.com/numpy/numpy/stargazers">NumPy</a>, and <a href="https://github.com/pandas-dev/pandas/stargazers">Pandas</a> surging in popularity. It is worthy to note, however, that these libraries make extensive use of static compilation to improve performance. Thus, as part of the Google Summer of Code (GSoC) in 2018, we sought to bring the same speedup to PracMLN.</p>
+
+<h1 id="gsoc-2018">GSoC 2018</h1>
+
+<p>As part of this project, under GSoC 2018, I plan to port parts of PracMLN to Cython. Cython allows static compilation of Python code, and allows variables to be typed. This can dramatically reduce runtimes, if used effectively. I will be working under the guidance and mentorship of Daniel Nyga, the creater and maintainer of PracMLN.</p>
+
+<h1 id="work-ahead-and-anticipated-challenges">Work Ahead and Anticipated Challenges</h1>
+
+<p>While programming may be considered easy, it is always challenging to write good code, that not only works, but works correctly and optimally. In the case of PracMLN, this is especially valid since the entire purpose of the project is to optimise the code for speed. While I have used Cython before, it has been in a very limited capacity, and never on a codebase so large and complicated. I suspect that the outcome of this project will depend significantly on my ability to understand the MLN learning and inference algorithms implemented in PracMLN, and my ability to type variables appropriately. To get some understanding of MLN theory, I am going to try to read Dominik Jain&rsquo;s doctoral dissertation on Markov Logic Networks, <a href="https://www.semanticscholar.org/paper/Probabilistic-Cognition-for-Technical-Systems%3A-for-Jain/142b32f7226127af75f23c18b22cee017475de59">available online</a>.</p>
+
+<p>This is a challenging GSoC project, but also an immense opportunity for me to learn the intricacies of MLNs, and of writing fast, high-quality code in Cython. I hope I will be able to rise up to the challenge!</p>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github-square"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2018 <i class="fa fa-heart" aria-hidden="true"></i> Kaivalya Rawal
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+
+
+
+
+    </body>
+</html>
