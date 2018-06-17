@@ -50,7 +50,7 @@
                     </h1>
                     <h2 class="headline">
                     Jun 8, 2018 00:52
-                    · 817 words
+                    · 815 words
                     · 4 minute read
                       <span class="tags">
                       
@@ -91,9 +91,12 @@
 
 <p>As you can see, after cloning the repo, a link needs to be inserted to the <code>_version</code> directory from inside the <code>python3/pracmln</code> folder. It is also essential to modify the <code>PYTHONPATH</code>. I spent a lot of time trying alternate ways to do this (different <code>setup.py</code> installs, various <code>pip</code> versions, etc), to avoid manually tweaking the <code>PYTHONPATH</code>, but to no avail. If you can figure out a different way to do this, please let me know!</p>
 
-<p>Since my work involved comparing the runtimes of Python and Cython, I supplemented this with a setup where I had two virtual environments:
-1. A virtualenv with pip version downgraded to 9.0.3, and pracmln installed via pip, for use as a baseline when measuring runtimes. When using this, I would ensure that pracmln was explicitly removed from the <code>PYTHONPATH</code>.
-2. A virtualenv with all the pracmln requirements installed, but without pracmln itself. When using this environment, I could see the effect my edits were causing.</p>
+<p>Since my work involved comparing the runtimes of Python and Cython, I supplemented this with a setup where I had two virtual environments:</p>
+
+<ol>
+<li>A virtualenv with pip version downgraded to 9.0.3, and pracmln installed via pip, for use as a baseline when measuring runtimes. When using this, I would ensure that pracmln was explicitly removed from the <code>PYTHONPATH</code>.</li>
+<li>A virtualenv with all the pracmln requirements installed, but without pracmln itself. When using this environment, I could see the effect my edits were causing.</li>
+</ol>
 
 <p>I was now ready to start testing my code using the following script (modified for MC-SAT).</p>
 
@@ -112,7 +115,7 @@
 <p>
 <figure>
     
-        <img src="/media/classes.png" />
+        <img src="/gsoc18-pracmln/media/classes.png" />
     
     
     <figcaption>
@@ -125,7 +128,7 @@
 
 <figure>
     
-        <img src="/media/packages.png" />
+        <img src="/gsoc18-pracmln/media/packages.png" />
     
     
     <figcaption>
@@ -136,7 +139,15 @@
 </figure>
 </p>
 
-<p>Completely human readable diagram available on <a href="https://imgur.com/a/t1Jxi8P">imgur</a>.</p>
+<p>Completely human readable diagram available on <a href="https://imgur.com/a/vRbDiHJ">imgur</a>:</p>
+
+<div class="embed imgur-image">
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/vRbDiHJ">
+<a href="//imgur.com/vRbDiHJ"></a>
+</blockquote>
+<script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+</div>
+
 
 <h1 id="a-new-direction">A New Direction</h1>
 
