@@ -50,7 +50,7 @@
                     </h1>
                     <h2 class="headline">
                     Jun 17, 2018 19:14
-                    · 1169 words
+                    · 1274 words
                     · 6 minute read
                       <span class="tags">
                       
@@ -60,6 +60,8 @@
                 
                 <section id="post-body">
                     
+
+<p><code>EnumerationAsk</code> performs exact inference over a Markov Logic Network. While it is not a very commonly used technique in the real world, where quicker approximations often suffice, it is nonetheless an important algorithm. Additionally, there is also a lot of potential for speeding it up, since the algorithm involves an enumeration of all possible worlds - each variable is assigned each possible value, and the probability of the resulting world is evaluated. After some discussion with my mentor, Daniel, we decided that this was the perfect algorithm to use for creating a reference implementation, paving the way forward for the rest of PracMLN to follow.</p>
 
 <p>For a little over a week now, I have been trying to convert the Enumeration-Ask algorithm from <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/inference/exact.py">exact.py</a> to a Cython <a href="http://cython.readthedocs.io/en/latest/src/tutorial/cdef_classes.html">extension type</a>.</p>
 

@@ -17,8 +17,7 @@
       <pubDate>Sun, 17 Jun 2018 19:14:00 +0530</pubDate>
       
       <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/enumerationask/</guid>
-      <description>For a little over a week now, I have been trying to convert the Enumeration-Ask algorithm from exact.py to a Cython extension type.
-Extension Types Extension types are classes that have been compiled via Cython (so cdef classes, essentially). They allow typing information to be added to attributes, and speed up attribute access times (by replacing a Python dictionary lookup with a C struct access). The official documentation for extension types is long and detailed, but, as I found out, not quite exhaustive.</description>
+      <description>EnumerationAsk performs exact inference over a Markov Logic Network. While it is not a very commonly used technique in the real world, where quicker approximations often suffice, it is nonetheless an important algorithm. Additionally, there is also a lot of potential for speeding it up, since the algorithm involves an enumeration of all possible worlds - each variable is assigned each possible value, and the probability of the resulting world is evaluated.</description>
     </item>
     
     <item>
