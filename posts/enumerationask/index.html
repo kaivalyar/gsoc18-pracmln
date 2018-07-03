@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>EnumerationAsk &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        EnumerationAsk
+                    </h1>
+                    <h2 class="headline">
+                    Jun 17, 2018 19:14
+                    · 1169 words
+                    · 6 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>For a little over a week now, I have been trying to convert the Enumeration-Ask algorithm from <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/inference/exact.py">exact.py</a> to a Cython <a href="http://cython.readthedocs.io/en/latest/src/tutorial/cdef_classes.html">extension type</a>.</p>
+
+<h1 id="extension-types">Extension Types</h1>
+
+<p>Extension types are classes that have been compiled via Cython (so <code>cdef classes</code>, essentially). They allow typing information to be added to attributes, and speed up attribute access times (by replacing a Python dictionary lookup with a C struct access). The official <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html">documentation</a> for extension types is long and detailed, but, as I found out, not quite exhaustive.</p>
+
+<p>A cursory understanding of extension types might lead to the misconception that this can be achieved by simply adding the word <code>cdef</code> before the <code>EnumerationAsk</code> class definition in exact.pyx. However, this approach fails.</p>
+
+<h1 id="approach">Approach</h1>
+
+<p>However, just by applying this single change and observing the compiler output, a lot of insight can be gained.</p>
+
+<pre><code class="language-bash">... $ pracmln/python3/pracmln/mln/inference $ python3 setup.py build_ext --inplace
+Compiling exact.pyx because it changed.
+[1/1] Cythonizing exact.pyx
+
+Error compiling Cython file:
+------------------------------------------------------------
+...
+            numerators[i] += expsum
+    denominator += expsum
+    return numerators, denominator
+
+
+cdef class EnumerationAsk(Inference):
+                         ^
+------------------------------------------------------------
+
+exact.pyx:77:26: First base of 'EnumerationAsk' is not an extension type
+
+</code></pre>
+
+<p>This is not surprising, as is <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html#subclassing">mentioned explicitly</a> in the documentation, <strong>Cython extension types cannot inherit from Python classes.</strong> <code>EnumerationAsk</code> inherits from the <code>Inference</code> class, in <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/inference/infer.py">infer.py</a>. At this point, it would be helpful to consult again the UML diagrams from imgur, to see what PracMLN dependencies look like.</p>
+
+<div class="embed imgur-image">
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/vRbDiHJ">
+<a href="//imgur.com/vRbDiHJ"></a>
+</blockquote>
+<script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+</div>
+
+
+<p>More important, however, this technique formed the basis of my workflow for most of last week. Just reading the documentation didn&rsquo;t make me an expert on Cython, and I didn&rsquo;t have the expertise or foresight to tell before hand what work would need to be done to successfully make <code>EnumerationAsk</code> into an extension type. So, instead of working up from the bottom, I employed this top down approach:</p>
+
+<ol>
+<li>Define as a <code>cdef</code> class whichever module is to be converted to an extension type.</li>
+<li>Observe carefully the compilers complaints.</li>
+<li>Fix / workaround errors until compilation is successfull.</li>
+<li>Run basic tests.</li>
+<li>Fix / workaround errors till Cython can replicate pure Python functionality.</li>
+</ol>
+
+<p>Having devised this approach after various iterations (and a few days of trial and error), I proceeded further with my plan.</p>
+
+<h1 id="enumerationask-dependencies">EnumerationAsk Dependencies</h1>
+
+<p>I kept proceeding further down this rabbit hole, hopeful of reaching the bottom eventually. Daniel provided valuable insight along the way, proposing that most of the computation heavy stuff was being done manipulating the <code>_evidence</code> variable of the <code>MRF</code> class in <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/mrf.py">mrf.py</a>, and in the <a href="https://github.com/danielnyga/pracmln/tree/master/python3/pracmln/logic">logic</a> module.</p>
+
+<p>The final (dependency) tree of edited files looked somewhat like this:</p>
+
+
+<figure>
+    
+        <img src="/gsoc18-pracmln/media/dependency.png" />
+    
+    
+    <figcaption>
+        <h4>Cython conversions required for EnumerationAsk</h4>
+        
+    </figcaption>
+    
+</figure>
+
+
+<p>Both <code>base.pyx</code> and <code>mrf.pyx</code> depended on the various parts of the logic module. This involved several complications and has been skipped for the time being.</p>
+
+<h1 id="errors-encountered">Errors Encountered</h1>
+
+<p>While employing this technique, I came across a variety of different compiler complaints, and varying degrees of support available online. While there was significant help avaialble online for a few errors, there were a few that the Cython community had not fully addressed online. I am listing these here:</p>
+
+<h2 id="valueerror">ValueError</h2>
+
+<pre><code>ValueError: ... has the wrong size, try recompiling. Expected 32, got 16
+</code></pre>
+
+<ul>
+<li>Reproducible: No (!)</li>
+<li>Help Available Online: No</li>
+<li>Cause Understood: No</li>
+<li>Solved: Yes</li>
+</ul>
+
+<p>This was a <em>runtime</em> error encountered early on in the conversion of <code>EnumerationAsk</code> to an extension type. While the only <a href="https://github.com/cython/cython/issues/1436">remotely related issue</a> online was wildly unhelpful, this error turned out to be the cause of a silly setup mistake. The fix is simple. <strong>A symbolic link needs to be created linking the built Cython code with the location where Python expects the file to be, in the usual PracMLN imports usage.</strong> For example, if this error is being generated for the <code>mrf.pyx</code>, then simply create a link like this:</p>
+
+<pre><code>... pracmln/python3/pracmln/mln $ ls -l | grep mrf.cpython
+lrwxrwxrwx 1 kaivalya kaivalya      47 Jun  18 22:24 mrf.cpython-35m-x86_64-linux-gnu.so -&gt; pracmln/mln/mrf.cpython-35m-x86_64-linux-gnu.so
+</code></pre>
+
+<h2 id="compilercrash">CompilerCrash</h2>
+
+<pre><code>[1/1] Cythonizing base.pyx
+
+Error compiling Cython file:
+------------------------------------------------------------
+...
+            formula = self.logic.parse_formula(formula)
+        elif type(formula) is int:
+            return self._formulas[formula]
+        constants = {}
+        formula.vardoms(None, constants)
+        for domain, constants in constants.items():
+                                               ^
+------------------------------------------------------------
+
+base.pyx:251:48: Compiler crash in AnalyseExpressionsTransform
+
+.
+.
+.
+
+Compiler crash traceback from this point on:
+  File &quot;/home/kaivalya/.prac3/lib/python3.5/site-packages/Cython/Compiler/ExprNodes.py&quot;, line 5226, in infer_type
+    arg_types = [arg.infer_type(env) for arg in self.args]
+TypeError: 'NoneType' object is not iterable
+Traceback (most recent call last):
+  File &quot;setup.py&quot;, line 13, in &lt;module&gt;
+    ext_modules=cythonize( ['*.pyx'] )
+  File &quot;/home/kaivalya/.prac3/lib/python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1026, in cythonize
+    cythonize_one(*args)
+  File &quot;/home/kaivalya/.prac3/lib/python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1146, in cythonize_one
+    raise CompileError(None, pyx_file)
+Cython.Compiler.Errors.CompileError: base.pyx
+</code></pre>
+
+<ul>
+<li>Reproducible: Yes</li>
+<li>Help Available Online: No</li>
+<li>Cause Understood: No</li>
+<li>Solved: Yes</li>
+</ul>
+
+<p>This <em>compiletime</em> error occurred twice in <code>base.pyx</code>. It concerns the constants variable on <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/base.py#L249">line 249</a> and <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/base.py#L773">line 773</a> (since renamed here). <strong>If both variables are typed as dictionaries, this error magically disappears.</strong></p>
+
+<h2 id="importerror">ImportError</h2>
+
+<pre><code>Traceback (most recent call last):
+  File &quot;test.py&quot;, line 5, in &lt;module&gt;
+    from pracmln import query
+  File &quot;/home/kaivalya/ ... /pracmln/python3/pracmln/__init__.py&quot;, line 22, in &lt;module&gt;
+    from .mln.base import MLN
+  File &quot;/home/kaivalya/ ... /pracmln/python3/pracmln/mln/__init__.py&quot;, line 27, in &lt;module&gt;
+    from .base import MLN
+  File &quot;common.pxd&quot;, line 1, in init pracmln.mln.base
+  File &quot;/home/kaivalya/ ... /pracmln/python3/pracmln/logic/__init__.py&quot;, line 1, in &lt;module&gt;
+    from .fol import FirstOrderLogic
+  File &quot;/home/kaivalya/ ... /pracmln/python3/pracmln/logic/fol.py&quot;, line 26, in &lt;module&gt;
+    from .common import Logic
+ImportError: No module named 'pracmln.logic.common'
+</code></pre>
+
+<ul>
+<li>Reproducible: Yes</li>
+<li>Help Available Online: Yes</li>
+<li>Cause Understood: Yes</li>
+<li>Solved: No</li>
+</ul>
+
+<p>There were many <em>runtime</em> import errors encountered, mostly related to the logic module. They seem to provide a significant challenge and I am yet to resolve them. I shall perhaps deal with them in a separate blog post.</p>
+
+<h1 id="summary">Summary</h1>
+
+<p>The workflow described above was arrived at after significant experimentation. I would love to hear feedback about it, and make improvements if possible. Additionally, more clarity on the errors mentioned here would also be beneficial. I was able to successfully apply this method, and convert the <code>EnumerationAsk</code>, <code>Inference</code>, <code>MRF</code>, and <code>MLN</code> classes to extension types this way. However, none of these could be tested (a serious drawback of taking this &ldquo;top down&rdquo; approach), because the code at this point doesn&rsquo;t run - on account of compilation errors related to the <code>logic</code> module.</p>
+
+<!--
+
+kaivalya@kaivalyarawal ~/Documents/WORK/GSoC/PracTests/EnumerationAsk $ bash test.sh 
+Traceback (most recent call last):
+  File "test.py", line 5, in <module>
+    from pracmln import query
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/__init__.py", line 22, in <module>
+    from .mln.base import MLN
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/mln/__init__.py", line 27, in <module>
+    from .base import MLN
+  File "common.pxd", line 1, in init pracmln.mln.base
+ValueError: pracmln.logic.common.Logic has the wrong size, try recompiling. Expected 32, got 16
+kaivalya@kaivalyarawal ~/Documents/WORK/GSoC/PracTests/EnumerationAsk $ bash test.sh 
+Traceback (most recent call last):
+  File "test.py", line 5, in <module>
+    from pracmln import query
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/__init__.py", line 22, in <module>
+    from .mln.base import MLN
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/mln/__init__.py", line 27, in <module>
+    from .base import MLN
+  File "common.pxd", line 1, in init pracmln.mln.base
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/logic/__init__.py", line 1, in <module>
+    from .fol import FirstOrderLogic
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/logic/fol.py", line 26, in <module>
+    from .common import Logic
+ImportError: No module named 'pracmln.logic.common'
+kaivalya@kaivalyarawal ~/Documents/WORK/GSoC/PracTests/EnumerationAsk $ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Traceback (most recent call last):
+  File "test.py", line 5, in <module>
+    from pracmln import query
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/__init__.py", line 22, in <module>
+    from .mln.base import MLN
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/mln/__init__.py", line 27, in <module>
+    from .base import MLN
+  File "common.pxd", line 1, in init pracmln.mln.base
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/logic/__init__.py", line 1, in <module>
+    from .fol import FirstOrderLogic
+  File "/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/logic/fol.py", line 26, in <module>
+    from .common import Logic
+ImportError: No module named 'pracmln.logic.common'
+
+-->
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github-square"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2018 <i class="fa fa-heart" aria-hidden="true"></i> Kaivalya Rawal
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+
+
+
+
+    </body>
+</html>
