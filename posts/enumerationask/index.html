@@ -50,8 +50,8 @@
                     </h1>
                     <h2 class="headline">
                     Jun 17, 2018 19:14
-                    · 1274 words
-                    · 6 minute read
+                    · 1280 words
+                    · 7 minute read
                       <span class="tags">
                       
                       </span>
@@ -184,15 +184,15 @@ base.pyx:251:48: Compiler crash in AnalyseExpressionsTransform
 .
 
 Compiler crash traceback from this point on:
-  File &quot;/home/kaivalya/.prac3/lib/python3.5/site-packages/Cython/Compiler/ExprNodes.py&quot;, line 5226, in infer_type
+  File &quot;/home/kaivalya/ ... /python3.5/site-packages/Cython/Compiler/ExprNodes.py&quot;, line 5226, in infer_type
     arg_types = [arg.infer_type(env) for arg in self.args]
 TypeError: 'NoneType' object is not iterable
 Traceback (most recent call last):
   File &quot;setup.py&quot;, line 13, in &lt;module&gt;
     ext_modules=cythonize( ['*.pyx'] )
-  File &quot;/home/kaivalya/.prac3/lib/python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1026, in cythonize
+  File &quot;/home/kaivalya/ ... /python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1026, in cythonize
     cythonize_one(*args)
-  File &quot;/home/kaivalya/.prac3/lib/python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1146, in cythonize_one
+  File &quot;/home/kaivalya/ ... /python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1146, in cythonize_one
     raise CompileError(None, pyx_file)
 Cython.Compiler.Errors.CompileError: base.pyx
 </code></pre>
