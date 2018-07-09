@@ -108,10 +108,14 @@ table {
 
 /* Spacing */
 
-.post h1, h3, h4, h5, p, #post-body ul, #post-list li, #post-body ol, pre {
+.post h1, h3, h4, h5, #post-body ul, #post-list li, #post-body ol, pre {
     margin-bottom: 20px;
 }
 
+.post p {
+    margin-top:10px;
+    margin-bottom: 10px;
+}
 
 /* Base */
 

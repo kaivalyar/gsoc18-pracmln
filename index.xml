@@ -6,10 +6,20 @@
     <description>Recent content on Markov Logic Networks in Python: PracMLN</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 17 Jun 2018 19:14:00 +0530</lastBuildDate>
+    <lastBuildDate>Fri, 29 Jun 2018 13:54:15 +0530</lastBuildDate>
     
 	<atom:link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>The Logic Module</title>
+      <link>https://kaivalyar.github.io/gsoc18-pracmln/posts/the-logic-module/</link>
+      <pubDate>Fri, 29 Jun 2018 13:54:15 +0530</pubDate>
+      
+      <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/the-logic-module/</guid>
+      <description>As mentioned in the previous blog post, to convert EnumerationAsk to an extension type required the conversion of all its dependencies first. These included the logic module.
+The complication The &amp;lt;LOGIC&amp;gt; in the following figure refers not to a single file, but the entire logic subdirectory. The important files here are common.pyx which contains the Logic superclass and fol.py and fuzzy.py which contain the derived FirstOrderLogic and FuzzyLogic subclasses respectively.</description>
+    </item>
     
     <item>
       <title>EnumerationAsk</title>

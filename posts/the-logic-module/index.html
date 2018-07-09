@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>The Logic Module &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        The Logic Module
+                    </h1>
+                    <h2 class="headline">
+                    Jun 29, 2018 13:54
+                    · 1320 words
+                    · 7 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>As mentioned in the previous blog post, to convert <code>EnumerationAsk</code> to an extension type required the conversion of all its dependencies first. These included the <code>logic</code> module.</p>
+
+<h1 id="the-complication">The complication</h1>
+
+<p>The <code>&lt;LOGIC&gt;</code> in the following figure refers not to a single file, but the entire <a href="https://github.com/danielnyga/pracmln/tree/master/python3/pracmln/logic">logic</a> subdirectory. The important files here are <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/logic/common.py">common.pyx</a> which contains the <code>Logic</code> superclass and <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/logic/fol.py">fol.py</a> and <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/logic/fuzzy.py">fuzzy.py</a> which contain the derived <code>FirstOrderLogic</code> and <code>FuzzyLogic</code> subclasses respectively.</p>
+
+
+<figure>
+    
+        <img src="/gsoc18-pracmln/media/dependency.png" />
+    
+    
+    <figcaption>
+        <h4>Cython conversions required for EnumerationAsk</h4>
+        
+    </figcaption>
+    
+</figure>
+
+
+<p>Speeding up Enumeration-Ask essentially required the logic related classes to be converted to extension types first. This involved two main challenges:</p>
+
+<ol>
+<li>Widespread use of inner classes.</li>
+<li>Use of multiple inheritance.</li>
+</ol>
+
+<p>Handling these was quite difficult, and I will not be detailing all the various techniques tried, but will delve straight to the final solution actually used.</p>
+
+<h1 id="inner-classes">Inner Classes</h1>
+
+<p>Here is an idea of the inner classes present in <code>Logic</code>, in <code>common.pyx</code>. The <code>FirstOrderLogic(Logic)</code> and <code>FuzzyLogic(Logic)</code> subclasses have corresponding inner classes too.</p>
+
+<pre><code>... pracmln/python3/pracmln/logic $ cat common.py | grep class
+class Logic(object):
+    class Constraint(object):
+    class Formula(Constraint): 
+    class ComplexFormula(Formula):
+    class Conjunction(ComplexFormula):
+    class Disjunction(ComplexFormula):
+    class Lit(Formula):
+    class LitGroup(Formula):
+    class GroundLit(Formula):
+    class GroundAtom:
+    class Equality(ComplexFormula):
+    class Implication(ComplexFormula):
+    class Biimplication(ComplexFormula):
+    class Negation(ComplexFormula):
+    class Exist(ComplexFormula):
+    class TrueFalse(Formula):
+    class NonLogicalConstraint(Constraint):
+    class CountConstraint(NonLogicalConstraint):
+    class GroundCountConstraint(NonLogicalConstraint):
+# this is a little hack to make nested classes pickleable
+</code></pre>
+
+<h2 id="the-error">The Error</h2>
+
+<p>The Cython compiler wouldn&rsquo;t allow declaring any classes inside other <code>cdef</code> classes. Defining the <code>Logic</code> outer class with <code>cdef</code>, and then compiling <code>common.pyx</code> yields the following error:</p>
+
+<pre><code>... pracmln/python3/pracmln/logic $ python3 setup.py build_ext --inplace
+Compiling common.pyx because it changed.
+[1/1] Cythonizing common.pyx
+
+Error compiling Cython file:
+------------------------------------------------------------
+...
+        self.__dict__ = d
+        self.grammar = eval(d['grammar'])(self)
+        
+    
+#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #   
+    class Constraint(object):
+   ^
+------------------------------------------------------------
+
+common.pyx:81:4: class definition not allowed here
+Traceback (most recent call last):
+  File &quot;setup.py&quot;, line 5, in &lt;module&gt;
+    ext_modules=cythonize( ['*.pyx'] )
+  File &quot;/home/kaivalya/ ... /python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1026, in cythonize
+    cythonize_one(*args)
+  File &quot;/home/kaivalya/ ... /python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1146, in cythonize_one
+    raise CompileError(None, pyx_file)
+Cython.Compiler.Errors.CompileError: common.pyx
+</code></pre>
+
+<p>I couldn&rsquo;t find any mention online of a similar problem. Cython seemed to be disallowing a class definition inside another, yet the official user guide on extension types made no note of this except in the case of wrapping C++ code. A few arcane Google searches later, I hit upon this, self-admittedly unreliable resource from 2008, which reads</p>
+
+<div class="embed blockquote">
+<blockquote class="" lang="en">
+... if inner class support gets added to Cython (I don&#39;t think it is now? but not 100% sure), then ..."
+</blockquote>
+</div>
+
+
+<p>So <em>apparently</em> I had to rewrite the logic classes and remove the inner classes. It is important here to remember that Python supports inner classes, but they are not essential to the language. Anything that can be achieved with inner classes, can be achieved without them - they just increase code readability and organisation <em>for humans</em>.</p>
+
+<p>After discussing with my mentor Daniel, I decided to remove the inner classes and readd them as instance attributes. I thus moved all the inner classes to a separate file, <code>misc.pyx</code>, and then imported them back for use inside <code>Logic</code>.</p>
+
+<h2 id="pickle-and-multiprocessing">Pickle and Multiprocessing</h2>
+
+<p>This caused a problem and the original <em>&lsquo;hack&rsquo;</em> introduced to allow pickling. This is more important than just an extra feature in PracMLN. The multicore versions of PracMLN use <code>multiprocessing</code>, and this requires <code>pickle</code> to work properly. Thus, this functionality was important to retain.</p>
+
+<p>Python inner classes do not add any features to the languages, unlike say Java inner classes. As stated in <a href="https://stackoverflow.com/questions/719705/what-is-the-purpose-of-pythons-inner-classes#answer-722175">this</a> answer on StackOverflow, inner classes can just be declared at the same level as normal <em>&lsquo;outer&rsquo;</em> classes, and then a reference to ech can be inside inside the <em>&lsquo;outer&rsquo;</em> class. The equivalence between Python-with-inner-classes and Python-without-inner-classes isn&rsquo;t theoretical, with both being Turing complete, but much simpler and more practical.</p>
+
+<p>I thus moved the inner classes back into the <code>common.pyx</code> file, but this time at the outermost level. This further simplified the code structure and made the extra <code>misc.pyx</code> file redundant, while also automatically solving the python <em>pickling</em> problem.</p>
+
+<h1 id="multiple-inheritance">Multiple Inheritance</h1>
+
+<p>This second issue was more challenging. There are many classes defined in the logic module that use Python&rsquo;s multiple inheritance.</p>
+
+<pre><code> ... pracmln/python3/pracmln/logic $ grep 'class.*[,].*:' *.py
+fol.py:    class Formula(Logic.Formula, Constraint): 
+fol.py:    class ComplexFormula(Logic.ComplexFormula, Formula): pass
+fol.py:    class Lit(Logic.Lit, Formula): pass
+fol.py:    class Litgroup(Logic.LitGroup, Formula): pass
+fol.py:    class GroundLit(Logic.GroundLit, Formula):
+fol.py:    class Disjunction(Logic.Disjunction, ComplexFormula):
+fol.py:    class Conjunction(Logic.Conjunction, ComplexFormula):
+fol.py:    class Implication(Logic.Implication, ComplexFormula):
+fol.py:    class Biimplication(Logic.Biimplication, ComplexFormula):
+fol.py:    class Negation(Logic.Negation, ComplexFormula): pass
+fol.py:    class Exist(Logic.Exist, ComplexFormula): pass
+fol.py:    class Equality(Logic.Equality, ComplexFormula): pass
+fol.py:    class TrueFalse(Logic.TrueFalse, Formula):
+fuzzy.py:    class Negation(Logic.Negation, ComplexFormula):
+fuzzy.py:    class Conjunction(Logic.Conjunction, ComplexFormula):
+fuzzy.py:    class Disjunction(Logic.Disjunction, ComplexFormula):
+fuzzy.py:    class Implication(Logic.Implication, ComplexFormula):
+fuzzy.py:    class Biimplication(Logic.Biimplication, ComplexFormula):
+fuzzy.py:    class TrueFalse(Formula, Logic.TrueFalse):
+fuzzy.py:    class Exist(Logic.Exist, Logic.ComplexFormula):
+</code></pre>
+
+<p>As the Cython extension types <a href="http://cython.readthedocs.io/en/latest/src/tutorial/cdef_classes.html#extension-types-aka-cdef-classes">introduction</a> notes,</p>
+
+<div class="embed blockquote">
+<blockquote class="" lang="en">
+Cython requires to know the complete inheritance hierarchy ... and restricts it to single inheritance."
+</blockquote>
+</div>
+
+
+<p>So it was impossible to convert this code to Cython without an extensive amount of rewriting. This was a roadblock that was hard to get past.</p>
+
+<p><strong>Running the tests at this point in time &hellip; succeeded!</strong></p>
+
+<p>That there was no need for any modifications to counter this &lsquo;problem&rsquo;. The goal of this exercise was to eventually convert <code>EnumerationAsk</code> to an extension type. This required the <code>Logic</code> class to be an extension type - which it was. Now, at compile time, the compiler was able to compile the code since all the types were known. At runtime, one of these variables, previosly known to be of the <code>Logic</code> type, would actually become a <code>FirstOrderLogic</code> or <code>FuzzyLogic</code> type variable. At this point, operation upon the subclass attributes would be limited by Python rate limits, however, at all other times, and elsewhere in the code, Cython speed would apply.</p>
+
+<h1 id="wrapping-up">Wrapping Up</h1>
+
+<p>Thus, the logic module was converted to Cython. However, running the code at this point of time still led to errors.</p>
+
+<h2 id="code-coupling">Code Coupling</h2>
+
+<p>For instance, the following error occurred at runtime shortly after these edits:</p>
+
+<pre><code>Traceback (most recent call last):
+  File &quot;test.py&quot;, line 41, in &lt;module&gt;
+    main(sys.argv[1])
+  File &quot;test.py&quot;, line 28, in main
+    query(queries='Cancer,Smokes,Friends', method='EnumerationAsk', mln=mln, db=db, verbose=False, multicore=False).run()
+  File &quot;/home/kaivalya/Documents/WORK/GSoC/kPracMLN/python3/pracmln/mlnquery.py&quot;, line 241, in run
+    mrf = mln_.ground(db)
+  File &quot;base.pyx&quot;, line 374, in pracmln.mln.base.MLN.ground
+  File &quot;mrf.pyx&quot;, line 339, in pracmln.mln.mrf.MRF.gndatom
+  File &quot;mrf.pyx&quot;, line 378, in pracmln.mln.mrf.MRF.new_gndatom
+  File &quot;mrf.pyx&quot;, line 351, in pracmln.mln.mrf.MRF.variable
+AttributeError: type object 'pracmln.logic.common.Logic' has no attribute 'GroundAtom'
+</code></pre>
+
+<p>The issue here is that the <code>Logic</code> module is closely coupled with the rest of <code>pracmln</code>. The solutions are trivial though, and the code can be edited quite easily to reflect the modified logic classes. I have run multiple tests to ensure I don&rsquo;t miss any cases, and tried to scrub all old-style usage of the inner classes, but I may have missed a few edge cases.</p>
+
+<h2 id="a-final-type-trick">A Final &lsquo;type&rsquo; Trick</h2>
+
+<p>A fundamental question arose now, about how many attributes should be typed. The main portions of the dependency tree for Enumeration-Ask had been successfully converted to Cython, and this included the computationally intensive <code>_evidence</code> attribute from the <code>MRF</code> class, as well as the logic module. It is impractical, and unnecessary to type all the attributes throughout PracMLN. However, at the same time, the Cython compiler would expectantly complain unless all attributes were known before runtime. The cython (documentation)[<a href="http://docs.cython.org/en/latest/src/userguide/extension_types.html#dynamic-attributes">http://docs.cython.org/en/latest/src/userguide/extension_types.html#dynamic-attributes</a>] suggest an easy hack to workaround this. For each class with untyped attributes, add a single <code>dict</code> type <code>__dict__</code> variable in the class definition in the corresponding <code>.pxd</code> file:</p>
+
+<pre><code>class foo:
+    cdef dict __dict__
+</code></pre>
+
+<p>While this is definitely slower than typing each attribute, expensive / extensively used attribute lookups can now be identified at ease, later, and typed gradually.</p>
+
+<p>This last trick allowed the entire code to compile and run, and returned the lost functionality of the <code>gsoc18-cython</code> branch to match that of the <code>master</code> branch. Finally, EnumerationAsk was compiled and running entirely in Cython, as an extension type.</p>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github-square"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2018 <i class="fa fa-heart" aria-hidden="true"></i> Kaivalya Rawal
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+
+
+
+
+    </body>
+</html>

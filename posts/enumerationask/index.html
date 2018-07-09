@@ -50,7 +50,7 @@
                     </h1>
                     <h2 class="headline">
                     Jun 17, 2018 19:14
-                    · 1280 words
+                    · 1285 words
                     · 7 minute read
                       <span class="tags">
                       
@@ -69,7 +69,7 @@
 
 <p>Extension types are classes that have been compiled via Cython (so <code>cdef classes</code>, essentially). They allow typing information to be added to attributes, and speed up attribute access times (by replacing a Python dictionary lookup with a C struct access). The official <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html">documentation</a> for extension types is long and detailed, but, as I found out, not quite exhaustive.</p>
 
-<p>A cursory understanding of extension types might lead to the misconception that this can be achieved by simply adding the word <code>cdef</code> before the <code>EnumerationAsk</code> class definition in exact.pyx. However, this approach fails.</p>
+<p>A cursory understanding of extension types might lead to the misconception that this can be achieved by simply adding the word <code>cdef</code> before the <code>EnumerationAsk</code> class definition in exact.pyx. This approach fails and is incomplete.</p>
 
 <h1 id="approach">Approach</h1>
 
@@ -95,7 +95,16 @@ exact.pyx:77:26: First base of 'EnumerationAsk' is not an extension type
 
 </code></pre>
 
-<p>This is not surprising, as is <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html#subclassing">mentioned explicitly</a> in the documentation, <strong>Cython extension types cannot inherit from Python classes.</strong> <code>EnumerationAsk</code> inherits from the <code>Inference</code> class, in <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/inference/infer.py">infer.py</a>. At this point, it would be helpful to consult again the UML diagrams from imgur, to see what PracMLN dependencies look like.</p>
+<p>This is not surprising, and is <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html#subclassing">mentioned explicitly</a> in the documentation.</p>
+
+<div class="embed blockquote">
+<blockquote class="" lang="en">
+An extension type can only have one base class (no multiple inheritance)."
+</blockquote>
+</div>
+
+
+<p><code>EnumerationAsk</code> inherits from the <code>Inference</code> class, in <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/inference/infer.py">infer.py</a>. At this point, it would be helpful to consult again the UML diagrams from imgur, to see what PracMLN dependencies look like.</p>
 
 <div class="embed imgur-image">
 <blockquote class="imgur-embed-pub" lang="en" data-id="a/vRbDiHJ">
@@ -155,7 +164,7 @@ exact.pyx:77:26: First base of 'EnumerationAsk' is not an extension type
 <li>Solved: Yes</li>
 </ul>
 
-<p>This was a <em>runtime</em> error encountered early on in the conversion of <code>EnumerationAsk</code> to an extension type. While the only <a href="https://github.com/cython/cython/issues/1436">remotely related issue</a> online was wildly unhelpful, this error turned out to be the cause of a silly setup mistake. The fix is simple. <strong>A symbolic link needs to be created linking the built Cython code with the location where Python expects the file to be, in the usual PracMLN imports usage.</strong> For example, if this error is being generated for the <code>mrf.pyx</code>, then simply create a link like this:</p>
+<p>This was a <em>runtime</em> error encountered early on in the conversion of <code>EnumerationAsk</code> to an extension type. While the only <a href="https://github.com/cython/cython/issues/1436">remotely related issue</a> online was wildly unhelpful, this error turned out to be the cause of a silly setup mistake. The fix is simple. <strong>A symbolic link needs to be created linking the built Cython code with the location where Python expects the file to be, in the usual PracMLN imports usage.</strong> For example, if this error is being generated for <code>mrf.pyx</code>, then simply create a link like this:</p>
 
 <pre><code>... pracmln/python3/pracmln/mln $ ls -l | grep mrf.cpython
 lrwxrwxrwx 1 kaivalya kaivalya      47 Jun  18 22:24 mrf.cpython-35m-x86_64-linux-gnu.so -&gt; pracmln/mln/mrf.cpython-35m-x86_64-linux-gnu.so
