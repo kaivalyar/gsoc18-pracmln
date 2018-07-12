@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/a-review/</loc>
+    <lastmod>2018-07-06T04:38:35+05:30</lastmod>
+  </url>
+  
+  <url>
     <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/the-logic-module/</loc>
     <lastmod>2018-06-29T13:54:15+05:30</lastmod>
   </url>
@@ -39,13 +44,13 @@
   
   <url>
     <loc>https://kaivalyar.github.io/gsoc18-pracmln/</loc>
-    <lastmod>2018-06-29T13:54:15+05:30</lastmod>
+    <lastmod>2018-07-06T04:38:35+05:30</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/</loc>
-    <lastmod>2018-06-29T13:54:15+05:30</lastmod>
+    <lastmod>2018-07-06T04:38:35+05:30</lastmod>
     <priority>0</priority>
   </url>
   

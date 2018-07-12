@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>A Review &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        A Review
+                    </h1>
+                    <h2 class="headline">
+                    Jul 6, 2018 04:38
+                    · 1010 words
+                    · 5 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>A review is most appropriate at the end of a project, to reflect on things well-done, and not-so-well-done. However, I thought to take pause in the middle of my project to reflect on some of my learnings and shortcomings over the last 2 months.</p>
+
+<h1 id="project-status">Project Status</h1>
+
+<p>As of now, using the latest test scripts from my <a href="https://github.com/kaivalyar/PracTests">PracTests</a> repository, there seems to be around a 20% speed increase in PracMLN.</p>
+
+<script src="//gist.github.com/kaivalyar/98ea2e31d1d6056d5dbff76a2146846e.js"></script>
+
+<p>On my machine, a sample run yields:</p>
+
+<pre><code>kaivalya@kaivalyarawal ~/ ... /PracTests/GenericSystemTest $ bash test.sh 
+[Cython]
+PracMLN Generic Systems Test:
+
+Start Smoker Inference
+=== INFERENCE TEST: EnumerationAsk ===
+=== INFERENCE TEST: EnumerationAsk ===
+Finish Smoker Inference
+Start Taxonomy Inference
+=== INFERENCE TEST: EnumerationAsk ===
+action_role(w1,_):
+[■■■■■■■■■■■■■■■■■] 100.000 % action_role(w1,theme)
+.
+.
+.
+all test finished after 5.779006242752075 secs
+[Python]
+PracMLN Generic Systems Test:
+
+Start Smoker Inference
+=== INFERENCE TEST: EnumerationAsk ===
+=== INFERENCE TEST: EnumerationAsk ===
+Finish Smoker Inference
+Start Taxonomy Inference
+=== INFERENCE TEST: EnumerationAsk ===
+action_role(w1,_):
+[■■■■■■■■■■■■■■■■■] 100.000 % action_role(w1,theme)
+.
+.
+.
+all test finished after 7.0214879512786865 secs
+
+</code></pre>
+
+<p>For a speedup of (7.02/5.78) - 1 = 0.21</p>
+
+<p>However, some strange behaviour is being observed.</p>
+
+<ol>
+<li>The output seems to remain verbose after Taxonomy inference starts, despite the verbosity being turned off <code>query(... verbose=False, ...)</code>.</li>
+<li>Only the Enumeration-Ask algorithm is functional, with all the others yielding runtime errors.</li>
+</ol>
+
+<h2 id="verbosity">Verbosity</h2>
+
+<p>IO operations are very time consuming, and this experiment can&rsquo;t be considered relaible unless the output can be minimised. This seems to be a minor bug that I need to fix before proceeding with the rest of my work. Hopefully this issue will be resolved by the time this blog post is actually being read / used by someone.</p>
+
+<h2 id="other-inference-algorithms">Other Inference Algorithms</h2>
+
+<p>Running any other inference algorithm leads to a runtime error (eg uncomment <a href="https://gist.github.com/kaivalyar/98ea2e31d1d6056d5dbff76a2146846e#file-test-py-L23">line 23</a> from the <code>test.py</code> in the gist above). This causes the following error:</p>
+
+<pre><code>kaivalya@kaivalyarawal ~/ ... /PracTests/GenericSystemTest $ bash test.sh 
+[Cython]
+PracMLN Generic Systems Test:
+
+Start Smoker Inference
+=== INFERENCE TEST: EnumerationAsk ===
+=== INFERENCE TEST: EnumerationAsk ===
+=== INFERENCE TEST: MC-SAT ===
+Traceback (most recent call last):
+  File &quot;test.py&quot;, line 111, in &lt;module&gt;
+    main()
+  File &quot;test.py&quot;, line 108, in main
+    runall()
+  File &quot;test.py&quot;, line 88, in runall
+    test_inference_smokers()
+  File &quot;test.py&quot;, line 33, in test_inference_smokers
+    multicore=multicore).run()
+  File &quot;/home/kaivalya/ ... /python3/pracmln/mlnquery.py&quot;, line 249, in run
+    result = inference.run()
+  File &quot;infer.pyx&quot;, line 190, in pracmln.mln.inference.infer.Inference.run
+  File &quot;wcspinfer.pyx&quot;, line 48, in pracmln.mln.inference.wcspinfer.WCSPInference._run
+AttributeError: 'WCSPInference' object has no attribute 'mrf'
+[Python]
+PracMLN Generic Systems Test:
+
+Start Smoker Inference
+=== INFERENCE TEST: EnumerationAsk ===
+=== INFERENCE TEST: EnumerationAsk ===
+=== INFERENCE TEST: MC-SAT ===
+
+=== INFERENCE TEST: MC-SAT ===
+
+Finish Smoker Inference
+Start Taxonomy Inference
+=== INFERENCE TEST: EnumerationAsk ===
+action_role(w1,_):
+.
+.
+.
+Finish Taxonomy Learning
+
+all test finished after 7.618952035903931 secs
+
+</code></pre>
+
+<p>So <code>WCSPInference(Inference)</code>, in <code>wcspinfer.pyx</code> was unable to access the attribute of its superclass, <code>Inference</code>, defined in <code>infer.pyx</code>. But <code>EnumerationAsk</code>, in <code>exact.pyx</code>, could do so - because it itself was a <code>cdef class</code>. Identical errors can be obtained for <code>MCSAT</code> and <code>GibbsSampler</code> too. So apparently Python (non <code>cdef</code>) subclasses can&rsquo;t inherit attributes from Cython superclasses? I can&rsquo;t find any reports of similar problems online though. Additionally, no similar problem occured in the logic module, when both <code>FirstOrderLogic(Logic)</code> and <code>FuzzyLogic(Logic)</code> inherited from <code>Logic</code>.</p>
+
+<p>One approach is to ignore it altogether - eventually, all inference algorithms will be implemented via Cython extension types, instead of Python classes. Thus this problem will solve itself. However, as Daniel rightly pointed out when I mentioned this to him - new algorithms may be developed, and implemented (atleast at first) in Python. PracMLN can&rsquo;t disallow inference algorithms implemented in Python - even if it chooses to use Cython to implement the preexisting ones. This is a problem is more vexing than it seems to be on the surface, and has stumped me so far.</p>
+
+<h1 id="lessons-and-personal-takeaways">Lessons and Personal Takeaways</h1>
+
+<p>This has been my first time working on such a large codebase. In fact, it is the first real <em>work</em> I have done in my life. I have realised over the course of this project, the differences between student life and professional life. The complications of a working environment were lost on me until recently - there was no professor here, and no prescribed syllabus. There was no set material to study, the mastery of which determined success. At first, it was hard to learn the ropes in this open-ended environment.</p>
+
+<p>However, under the extremely helpful guidance of Daniel Nyga, I was able to learn to operate in this environment. The redesigned timeline and more realistic milestones set by him were integral to getting my work started in earnest. I have learned more about Cython and software development in the last few months, than in the entire duration of my undergraduate studies. More importantly though, I have learnt the importance of being able to break up a large problem into subproblems, and then work on each individually. This is due in part to the expert use of Trello made by the PracMLN project, and is something I hope to emulate in the future.</p>
+
+<h1 id="future">Future</h1>
+
+<p>I am only now learning the <em>Golden Rule of Optimisation</em>:</p>
+
+<div class="embed blockquote">
+<blockquote class="" lang="en">
+ &#39;Premature optimization is the root of all evil&#39; - Donald Knuth 
+</blockquote>
+</div>
+
+
+<p>If I had come across <a href="http://wiki.c2.com/?PrematureOptimization">this page</a>, or even paid more attention to the <a href="https://cython.readthedocs.io/en/latest/src/tutorial/profiling_tutorial.html#profiling-tutorial">documentation</a> that I otherwise read so diligently, I would&rsquo;ve known this. I would&rsquo;ve then been prevented from this evil.</p>
+
+<p>It really is evil. The Cython guide goes so far as to say &ldquo;&hellip; Never optimize without having profiled. Let me repeat this: Never optimize without having profiled your code. Your thoughts about which part of your code takes too much time are wrong.&rdquo; So there is this thing called profiling, which I should&rsquo;ve done first, which I am going to only start doing now.</p>
+
+<p>I hope to thus find and optimise the largest of the performance bottlenecks in the code, and in doing so, chart a path that can be followed in the future to bring further speedup to PracMLN. This reference implementation, along with this blog, can then serve as a complete documentation, informing and guiding future work.</p>
+
+<!--
+For the remainder of this GSoC, I shall first try to improve the gains made in speeding up Enumeration-Ask, and if possible try to extend my results to other PracMLN algorithms.
+-->
+
+                </section>
+            </article>
+
+            
+
+            
+                <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'gsoc2018'; 
+
+     
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="mailto:kaivalyaraw@gmail.com">
+        <i class="fa fa-envelope"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.kaivalyarawal.com">
+        <i class="fa fa-globe"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/kaivalyar/">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+    <a class="symbol" href="https://stackoverflow.com/users/10023503/kaivalya-rawal">
+        <i class="fa fa-stack-overflow"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Kaivalya Rawal 2018
+    
+    </p>
+    
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-122258341-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+    </body>
+</html>

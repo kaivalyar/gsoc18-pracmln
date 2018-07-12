@@ -143,23 +143,26 @@ h2 {
 }
 
 .profile #wrapper {
-    padding: 60px 40px 0px;
+    padding: 10px/*60px 40px 0px*/;
     max-width: 600px;
     margin: 0 auto;
 }
 
 .profile #header {
-    margin-bottom: 60px;
+    margin-bottom: 40px;
+    padding-bottom: 10px;
+    border-bottom: thin solid black;
     text-align: center;
     position: relative;
 }
 
 .profile #avatar {
-    display: inline-block;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    margin-bottom: 20px;
+    /*display: inline-block;
+    width: 80px;*/
+    height: 100px;
+    /*border-radius: 50%;*/
+    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .profile h1 {
@@ -170,12 +173,24 @@ h2 {
 }
 
 .profile h2 {
-    font-size: 20px;
+    /*font-size: 20px;*/
     font-weight: 300;
-    color: #aaa;
-    margin-top: 10px;
+    /*color: #aaa;*/
+    /*margin-top: 10px;*/
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-style: normal;
+}
+
+.subtitle {
+    color: black;
+    margin-top: 10px;
+    font-size: 20px;
+}
+
+.auth {
+    margin-top: 2px;
+    color: #666;
+    font-size: 18px;
 }
 
 nav.main-nav {
@@ -230,7 +245,7 @@ nav.main-nav a.cta {
 #wrapper {
     max-width: 600px;
     margin: 0 auto;
-    padding: 60px 20px 100px 20px;
+    padding: 60px 20px 20px 20px;
 }
 
 #wrapper.home {
@@ -335,6 +350,10 @@ em, i {
     color: #bbb;
 }
 
+.home li {
+    margin-left: 0;
+}
+
 .post header {
     text-align: center;
 }
@@ -411,7 +430,7 @@ p.small {
     line-height: 1.5;
     display: block;
     text-align: center;
-    margin-top: 20px;
+    margin-top: 5px;
 }
 
 blockquote {
@@ -852,14 +871,17 @@ h2.month {
 }
 
 a.symbol {
-    color: #cdd4da;
-    font-size: 2rem;
+    /*color: #cdd4da;*/
+    color: #aaa;
+    /*font-size: 2rem;*/
+    font-size: 1.2rem;
     text-decoration: none;
     margin-right: 0.3rem;
 }
 
 a.symbol:hover {
-    color: #BCD4DA;
+    /*color: #BCD4DA;*/
+    color: #666;
 }
 
 

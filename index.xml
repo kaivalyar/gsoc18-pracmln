@@ -6,10 +6,20 @@
     <description>Recent content on Markov Logic Networks in Python: PracMLN</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 29 Jun 2018 13:54:15 +0530</lastBuildDate>
+    <lastBuildDate>Fri, 06 Jul 2018 04:38:35 +0530</lastBuildDate>
     
 	<atom:link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>A Review</title>
+      <link>https://kaivalyar.github.io/gsoc18-pracmln/posts/a-review/</link>
+      <pubDate>Fri, 06 Jul 2018 04:38:35 +0530</pubDate>
+      
+      <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/a-review/</guid>
+      <description>A review is most appropriate at the end of a project, to reflect on things well-done, and not-so-well-done. However, I thought to take pause in the middle of my project to reflect on some of my learnings and shortcomings over the last 2 months.
+Project Status As of now, using the latest test scripts from my PracTests repository, there seems to be around a 20% speed increase in PracMLN.</description>
+    </item>
     
     <item>
       <title>The Logic Module</title>
@@ -17,7 +27,7 @@
       <pubDate>Fri, 29 Jun 2018 13:54:15 +0530</pubDate>
       
       <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/the-logic-module/</guid>
-      <description>As mentioned in the previous blog post, to convert EnumerationAsk to an extension type required the conversion of all its dependencies first. These included the logic module.
+      <description>As mentioned in the last post, to convert EnumerationAsk to an extension type required the conversion of all its dependencies first. These included the logic module.
 The complication The &amp;lt;LOGIC&amp;gt; in the following figure refers not to a single file, but the entire logic subdirectory. The important files here are common.pyx which contains the Logic superclass and fol.py and fuzzy.py which contain the derived FirstOrderLogic and FuzzyLogic subclasses respectively.</description>
     </item>
     
@@ -54,8 +64,8 @@ The complication The &amp;lt;LOGIC&amp;gt; in the following figure refers not to
       <pubDate>Fri, 25 May 2018 01:40:26 +0530</pubDate>
       
       <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/welcome/</guid>
-      <description>Hello! I am Kaivalya Rawal, an undergraduate student of computer science, and an AI enthusiast. I will be working on the PracMLN project over the next few months, under the mentorship of Daniel Nyga, as part of the Google Summer of Code Programme.
-The project abstract can be found here on the official GSoC website, and here is a link to my proposal. It remains to be seen however, how the goals of the project change over the summer, and what new challenges appear along the way.</description>
+      <description>Hello! I am Kaivalya Rawal, an undergraduate student of computer science, and an AI enthusiast. For the next few months I will be working on the PracMLN project, from the Insitute of Artificial Intelligence, at the University of Bremen. This will be done as part of the Google Summer of Code Programme, under the mentorship of Daniel Nyga the creator and maintainer of PracMLN.
+The project abstract can be found here on the official GSoC website, and here is a link to my proposal.</description>
     </item>
     
   </channel>
