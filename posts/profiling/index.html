@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>Profiling &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        Profiling
+                    </h1>
+                    <h2 class="headline">
+                    Jul 10, 2018 03:25
+                    · 813 words
+                    · 4 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>This entire post is dedicated to a description of the various profilers I experimented with. At the start of this project, I didn&rsquo;t know what profiling was, however, over the last week, I have tried multiple ones. This post expounds my experiences, summarising the relative strengths and weaknesses of each, and describing what I think works best for the PracMLN project in particular.</p>
+
+<h1 id="built-in-profiling">Built-In Profiling</h1>
+
+<p>The first thing to note when profiling is that PracMLN has built-in profiling capabilities. If not using the MLNQuery GUI tool, then the <code>profile=True</code> parameter can be passed explicitly to the <code>query( ... )</code> tool.</p>
+
+<script src="//gist.github.com/kaivalyar/ad3361b03723fbca48ae91cd62ebd3ab.js"></script>
+
+<p>The output of this script is long and arcane, looking something like this:</p>
+
+<pre><code>... $ python3 profiling.py 
+starting profiler...
+===================
+PROFILER STATISTICS
+===================
+         1077566035 function calls (1030510920 primitive calls) in 472.871 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000  472.859  472.859 /.../pracmln/mln/inference/infer.py:180(run)
+        1    4.077    4.077  472.859  472.859 /.../pracmln/mln/inference/exact.py:94(_run)
+   524288   33.251    0.000  455.722    0.001 /.../pracmln/mln/inference/exact.py:48(eval_queries)
+ 10485760   12.677    0.000  228.340    0.000 /.../pracmln/mln/inference/exact.py:172(soft_evidence_formula)
+37748736/9437184   40.804    0.000  186.753    0.000 / .../pracmln/logic/common.py:222(gndatoms)
+ 28835840   29.806    0.000  125.288    0.000 /.../pracmln/logic/common.py:1373(gndatoms)
+
+        .        .        .        .        .        .
+        .        .        .        .        .        .
+        .        .        .        .        .        .
+
+        2    0.000    0.000    0.000    0.000 {method 'getrandbits' of '_random.Random' objects}
+        1    0.000    0.000    0.000    0.000 / ... /pracmln/mln/grounding/default.py:84(_cacheinit)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+
+exact inference test: 472.885466337204
+
+</code></pre>
+
+<p>This is useful, but not very versatile. It makes use of the <code>cProfile</code> module, giving detailed statistics per function used in a particular Python script. The output has 6 columns; <code>ncalls</code> is the total number of times a function is called, <code>totime</code> the total time spent executing the particular function (excluding calls made to other functions), <code>cumtime</code> the total time spent in a functions body (including the time spent in calling other functions from this particular one), <code>percall</code> the average time spent in the function during each invocation (<code>totime</code>/<code>ncalls</code> and <code>cumtime</code>/<code>ncalss</code>, respectively), and finally, the <code>filename:lineno</code> filed points to the location in the code of the function each line refers to.</p>
+
+<h1 id="pycallgraph">PyCallGraph</h1>
+
+<p>More detailed profiling capability is required for a better understanding. At this point I learnt about <a href="https://pycallgraph.readthedocs.io/en/master/">PyCallGraph</a> - a profiler that simultaneously creates a colour coded call graph from a Python script.</p>
+
+<p>In the case of PracMLN, however, this is not much more helpful either, with the generated graphs too large to comprehend, reminescent of the earlier UML diagrams:</p>
+
+<div class="embed imgur-image">
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/6ygXaVP">
+<a href="//imgur.com/6ygXaVP"></a>
+</blockquote>
+<script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+</div>
+
+
+<h1 id="vanilla-cprofile">Vanilla cProfile</h1>
+
+<p>It turns out that the default <code>cProfile</code> module that ships with Python is actually extremely powerful, if not very easy to use. Using the same <code>profiling.py</code> script from the gist <a href="#built-in-profiling">referenced above</a>, but with line 13 commented instead of line 14 (so that <code>profile=False</code>), the profile can be obtained using the command:</p>
+
+<pre><code>... $ python3 -m cProfile -o profile-data.txt profiling.py
+</code></pre>
+
+<p>The resultant profile gets stored in the newly created <code>profile-data.txt</code> file, and can now be analysed using another default Python module - <code>pStats</code>. While I did explore this option, I shall not be describing it further here as there are plenty of resources about this already on the internet.</p>
+
+<h1 id="visualising-profiled-programs">Visualising Profiled Programs</h1>
+
+<p>Instead of using <code>pStats</code>, it is arguably simpler to install <a href="https://github.com/ymichael/cprofilev">cprofilev</a> and <a href="https://github.com/jiffyclub/snakeviz/">snakeviz</a>, and then use these in turn to analyse the <code>profile-data.txt</code> file. After simple pip installation, both programs create interactive locally hosted web servers, displaying the contents of the profiling data. This can then be very effectively analysed from any browser.</p>
+
+<pre><code>... $ cprofilev -f profile-data.txt 
+[cProfileV]: cProfile output available at http://127.0.0.1:4000
+</code></pre>
+
+<p><code>cprofilev</code> is a very light wrapper around <code>pStats</code>, allowing easy text-based viewing of the logs, providing basic sorting functionality, and detailed caller/callee information per function.</p>
+
+
+<figure>
+    
+        <img src="/gsoc18-pracmln/media/cprofilev-demo.png" />
+    
+    
+    <figcaption>
+        <h4>Screenshot of cprofilev Analysis of Enumeration-Ask</h4>
+        
+    </figcaption>
+    
+</figure>
+
+
+<pre><code>... $ snakeviz profile-data.txt 
+snakeviz web server started on 127.0.0.1:8080; enter Ctrl-C to exit
+</code></pre>
+
+<p><code>snakeviz</code> provides a graphical view - a very intuitive GUI, instantly displaying function calls, and time taken per call. This &lsquo;sunburst&rsquo; view shows topmost function in the callstack is at the center, and the outer rings around it represent successive function calls, with the arc angle representing total time. There is an equally neat &lsquo;icicle&rsquo; view too.</p>
+
+
+<figure>
+    
+        <img src="/gsoc18-pracmln/media/snakeviz-demo.png" />
+    
+    
+    <figcaption>
+        <h4>Screenshot of snakeviz Analysis of Enumeration-Ask</h4>
+        
+    </figcaption>
+    
+</figure>
+
+
+<h1 id="profiling-cython">Profiling Cython</h1>
+
+<p>Unfortunately, all the tools described in the post so far, don&rsquo;t work out of the box for Cython instead of Python. The Cython <a href="https://cython.readthedocs.io/en/latest/src/tutorial/profiling_tutorial.html">documentation</a> has a little information on how to enable this though - it involves a compiler directive in every single Cython source file!</p>
+
+<p>If you&rsquo;re anything like me, this is way too tedious to implement. So the secret to getting around this is modifying the Cython compilation file - <code>setup.py</code> instead. I just added a <code>compiler_directives={'profile': True}</code> parameter to the <code>cythonize( ... )</code> function. Since there were multiple <code>setup.py</code> files in PracMLN, this change needed to be made in all of them.</p>
+
+<script src="//gist.github.com/kaivalyar/a18efb8d5c8954c17cf8010e58d946f4.js"></script>
+
+<p><strong>This completes it - I now have the ability to profile PracMLN code, and identify bottlenecks to optimise via Cython.</strong></p>
+
+                </section>
+            </article>
+
+            
+
+            
+                <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'gsoc2018'; 
+
+     
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="mailto:kaivalyaraw@gmail.com">
+        <i class="fa fa-envelope"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.kaivalyarawal.com">
+        <i class="fa fa-globe"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/kaivalyar/">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+    <a class="symbol" href="https://stackoverflow.com/users/10023503/kaivalya-rawal">
+        <i class="fa fa-stack-overflow"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Kaivalya Rawal 2018
+    
+    </p>
+    
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-122258341-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+    </body>
+</html>

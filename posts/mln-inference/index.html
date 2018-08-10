@@ -50,8 +50,8 @@
                     </h1>
                     <h2 class="headline">
                     Jun 8, 2018 00:52
-                    · 816 words
-                    · 4 minute read
+                    · 858 words
+                    · 5 minute read
                       <span class="tags">
                       
                       </span>
@@ -98,6 +98,8 @@
 <li>A virtualenv with all the pracmln requirements installed, but without pracmln itself. When using this environment, I could see the effect my edits were causing.</li>
 </ol>
 
+<p>Most text editors don&rsquo;t really support cython syntax highlighting. I therefore recommend installing <a href="https://atom.io">atom</a>, and then getting the handy <a href="https://atom.io/packages/language-cython">language-cython</a> package.</p>
+
 <p>I was now ready to start testing my code using the following script (modified for MC-SAT).</p>
 
 <script src="//gist.github.com/kaivalyar/38eedc29dc3f23565b370c296c32850a.js"></script>
@@ -106,7 +108,7 @@
 
 <h1 id="deciphering-pracmln">Deciphering PracMLN</h1>
 
-<p>This was initially rather dissapointing, but in hindsight, should have been expected. Merely typing a few local variables doesn&rsquo;t really modify the behaviour of the computationally intensive portions of any codebase. At the moment, however, I was very uncertain about this, or how to proceed. I would use the Cython annotation tool extensively (<code>... $ cython -a ...</code>), generate HTML files displaying a lot of yellow lines, hinting at possible optimisations, and then not know what to do about them. I decided to plough through the rest of the inference related code anyways, line by line, arbitrarily typing a few variables here and there.</p>
+<p>This was initially rather dissapointing, but in hindsight, should have been expected. Merely typing a few local variables doesn&rsquo;t really modify the behaviour of the computationally intensive portions of any codebase. At the moment, however, I was very uncertain about this, or how to proceed. I would use the Cython annotation tool extensively (<code>... $ cython -a ...</code>), generate HTML files displaying a lot of yellow lines, hinting at possible optimisations, and then not know what to do about them. I decided to plough through the rest of the inference related code anyways, line by line, arbitrarily typing a few variables here and there. I marked edits and questions with a comment of the form <code># Q(gsoc): ...</code>, to serve as a flag for review.</p>
 
 <p><strong>It did not help. At all.</strong></p>
 

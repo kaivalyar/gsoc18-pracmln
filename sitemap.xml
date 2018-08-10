@@ -3,6 +3,16 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/the-first-optimisations/</loc>
+    <lastmod>2018-07-14T04:10:07+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/profiling/</loc>
+    <lastmod>2018-07-10T03:25:59+05:30</lastmod>
+  </url>
+  
+  <url>
     <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/a-review/</loc>
     <lastmod>2018-07-06T04:38:35+05:30</lastmod>
   </url>
@@ -44,13 +54,13 @@
   
   <url>
     <loc>https://kaivalyar.github.io/gsoc18-pracmln/</loc>
-    <lastmod>2018-07-06T04:38:35+05:30</lastmod>
+    <lastmod>2018-07-14T04:10:07+05:30</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://kaivalyar.github.io/gsoc18-pracmln/posts/</loc>
-    <lastmod>2018-07-06T04:38:35+05:30</lastmod>
+    <lastmod>2018-07-14T04:10:07+05:30</lastmod>
     <priority>0</priority>
   </url>
   

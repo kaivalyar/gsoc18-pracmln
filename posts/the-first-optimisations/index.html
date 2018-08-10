@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>The First Optimisations &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        The First Optimisations
+                    </h1>
+                    <h2 class="headline">
+                    Jul 14, 2018 04:10
+                    · 1207 words
+                    · 6 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>After analysing the profiles, I started optimising slow portions of PracMLN. The changes described here have led to significant speedups, bringing runtimes for a reference MLN Exact Inference task down by a further 10%-15%.</p>
+
+<h1 id="profiling-vs-cythonising">Profiling vs Cythonising</h1>
+
+<p>There was a fundamental distinction between the information obtained via a the profiles generated, and that required by Cython, for speeding up PracMLN. The profiler pointed me to slow portions in the code, to bottlenecks. It helped me identify exactly which functions needed to be sped up. Cython, on the other hand, required optimisations to be made by variable, not function. This is a very subtle distinction. While it might naively be perceived that every slow function as per the profile simply needs to be redefined using <code>cdef</code>, this is of little use without typing information. This means that to speed PracMLN up using Cython, it is also important to identify important  / extensively utilised variables and data-structures, and then type those.</p>
+
+<h1 id="verbosity-reduction">Verbosity Reduction</h1>
+
+<p>A few days back I had <a href="../a-review/#verbosity">reported</a> my inability to reduce the verbosity of the output in my test scripts. This was happening for two separate reasons, both of which were finally identified only by my mentor, Daniel Nyga. Firstly, as verified by the profiles generated, the IO operations weren&rsquo;t really time-consuming. I think this is not a result of IO being efficient, but caused instead by the paucity of print output. Sure, it&rsquo;s enough to inundate a human user, but not really enough to actually slow down a modern computer.</p>
+
+<p>That being said, there are two edits required to fix this bug:</p>
+
+<ol>
+<li><strong>Embarrassing Error in Test Script</strong>: there was output from the test script, because well, the script instructed PracMLN to write the results to the screen. Removing the <code>.write()</code> from <a href="https://gist.github.com/kaivalyar/98ea2e31d1d6056d5dbff76a2146846e/#file-test-py-L49">line 49</a> immediately stops the writing to the terminal. This has been fixed.</li>
+<li><strong>Intermediate SciPy Outputs</strong>: SciPy functions used in <code>mln/learning/optimize.py</code> are verbose. For example, <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/learning/optimize.py#L208">fmin_bfgs</a>, <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/learning/optimize.py#L215">fmin_cg</a>, <a href="https://github.com/danielnyga/pracmln/blob/master/python3/pracmln/mln/learning/optimize.py#L221">fmin_ncg</a>, etc. These haven&rsquo;t been modified, but can trivially be changed by referring to the SciPy documentation. This isn&rsquo;t terribly vital though, since the test script verbosity has been deemed harmless by the profiler.</li>
+</ol>
+
+<h1 id="aside-pracmln-inference">Aside - PracMLN Inference</h1>
+
+<p>In the same post, I also <a href="../a-review/#other-inference-algorithms">reported</a> how only the <em>Enumeration-Ask</em> algorithm was functioning bug-free. All other (non-cythonised) algorithms were throwing runtime errors. This needed to be fixed so as to not mandate that all future extensions to PRacMLN be made in Cython, and to allow Python too. While this stumped me for a long while, the solution is again embarassingly simple. The <code>mrf</code> variable typed in the <code>Inference</code> class needed to be made <code>public</code>. As explained in the <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html#static-attributes">documentation</a>, its necessary for attributes to be declared <code>public</code> so that Python code can access them. So the error occured because <code>EnumerationAsk(Inference)</code> has already been converted to Cython, and could access the <code>mrf</code> attribute, but the other inference related code like <code>WCSPInference(Inference)</code> is still Python and thus couldn&rsquo;t access <code>mrf</code> from <code>Inference</code>, leading to errors.</p>
+
+<h1 id="investigating-the-profile">Investigating the Profile</h1>
+
+<p>The functions deemed interesting to investigate further (ie, high up in the <code>totime</code> / <code>cumtime</code> sorted <code>cprofilev</code> analyses) were:</p>
+
+<ul>
+<li><code>contains_gndatom</code></li>
+<li><code>gndatoms</code></li>
+<li><code>(@property)gndatom</code></li>
+<li><code>(@property)negated</code></li>
+<li><code>(@property)predname</code></li>
+<li><code>__str__</code></li>
+<li><code>(@property)value</code></li>
+<li><code>(@property)weights</code></li>
+</ul>
+
+<p>The types of the variables in these functions, were investigated by inserting relevant print statements into the code. <a href="https://github.com/kaivalyar/pracmln/commit/e81cd19d309e1f2b138ff5ddcc33bdda237885b7">This commit</a> shows this being done for the list mentioned above. It is worth noting here that, as mentioned above, Cython optimisations required a focus on variables. While the 5 @property optimisations mentioned above didn&rsquo;t figure in the profile data, it is worthy to note that the functions that indeed are timeconsuming make extensive use of these. Optimising the properties will improve the speed at which those variables are accessed, in turn improving performance across PracMLN code.</p>
+
+<p>Some other portions of PracMLN that I intend to further examine for possible speedups are:</p>
+
+<ul>
+<li><code>_weights</code> attribute from the the <code>MLN</code> class</li>
+<li><code>_evidence</code> attribute from the the <code>MLN</code> class</li>
+<li><code>eval_queries</code> in <code>exact.pyx</code></li>
+<li><code>soft_evidence</code> in the <code>EnumerationAsk</code> class</li>
+<li>miscellaneous <code>truth</code> functions from the <code>logic</code> module</li>
+<li>special functions in the <code>logic</code> module, like <code>__eq__</code>, <code>__call__</code>, etc</li>
+</ul>
+
+<h1 id="challenges">Challenges</h1>
+
+<p>There were many challenges that rendered typing variables to be an impossible proposition. A host of local variables (representing truth values, for example) couldn&rsquo;t be typed because they could all potentially be <code>None</code> - without invalidating PracMLN semantics. There were lists of custom, user-defined objects, which couldn&rsquo;t be converted to Cython arrays - like the <code>children</code> attribute heavily used in the <code>logic</code> module classes. Moreover, the lengths were also variable at times. Often, variables could have multiple types. In the <code>MLN</code> class, the <code>_weights</code> is a list of Strings, floats, or both.</p>
+
+<h1 id="workflow">Workflow</h1>
+
+<p>It was tricky to figure out a comfortable and efficient workflow for this task. There were multiple steps involved in the process:</p>
+
+<ol>
+<li>Edit Code</li>
+<li>Build / Compile</li>
+<li>Test Functionality</li>
+<li>Profile and Measure Speed</li>
+</ol>
+
+<p>This was an excruciatingly slow process. Cython builds take a long time, and the runtimes I was working with could at times be as high as 10 minutes each. Running multiple instances of this workflow parallely also wouldn&rsquo;t help, since both process would be interleaved, increasing runtimes drastically and rendering runtime measurements untenable. Additionally, building while simultaneously running a test has the effect of changing the code midway through execution - leading to all manner of runtime errors.</p>
+
+<p>Over time, I settled into the following pattern of work, and was able to use it fairly well for the purposes of GSoC:</p>
+
+<ol>
+<li>Select Function to Investigate</li>
+<li>Add Print statements to determine Variable Types involved</li>
+<li>Edit Code by adding Typing Information, if possible</li>
+<li>Rebuild / Compile</li>
+<li>Run a Small, Quick Learning + Inference Test to ensure functionality is unchanged</li>
+<li>Repeat 3-4 until satisfied.</li>
+<li>Profile on Large MLN Inference task, and Measure Speedup obtained</li>
+</ol>
+
+<h1 id="final-optimisations">Final Optimisations</h1>
+
+<p>The final optimisations seem fairly trivial. In a sense, they are trivial - just adding a few words here and there. However, determining what words to add where has been the exercise over this entire project. The techniques and work documented in the last two blog-posts is succintly describes most of the important steps of this process.</p>
+
+<p>All the final optimisations were made by editing just one file - <code>common.pxd</code>. It turns out that typing attributes defined here sped up the entire <code>logic</code> module that operated upon them. Hidden variables <code>_predname</code> and <code>_negated</code> were typed as <code>str</code> and <code>int</code> respectively. Additionally, the <code>MLN</code> class, which had already been made into an extension-type, was used to type the <code>mln</code> attribute. Lastly, simply adding a <code>cdef __dict__</code> in the relevant classes in the inheritance hierarchy measurably improved PracMLN speed.</p>
+
+<h1 id="future">Future</h1>
+
+<p>I have a feeling that some of the special methods defined in the logic module need improvement, although how exactly to bring this about remains unclear to me. The <a href="http://cython.readthedocs.io/en/latest/src/userguide/special_methods.html">Cython documentation</a> is surprisingly unhelpful about how I may do this. What&rsquo;s certain is that far too much time is spent in the <code>__get__</code>, <code>__str__</code>, <code>__eq__</code> functions.</p>
+
+<p>There still is a long way to go, and I have a feeling that I haven&rsquo;t correctly analysed the profile data. Daniel&rsquo;s suggestion is to now further improve the <code>logic</code> module - with a specific focus on the <code>truth</code> functions, and the <code>iterworlds</code> function and <code>_evidence</code> attribute in the <code>MRF</code> class. This is mostly going to be the next step I take.</p>
+
+<!--
+
+
+
+str _predicate
+cdef __dict__
+memory views ? scpecial methods ?
+
+possible workflows : ??
+EDIT-BUILD-PROFILE : vv slow. 
+can't test simultaneously - slows all tests down
+can't build while testing, because code changes midway, non-backwards compatible...
+
+-->
+
+                </section>
+            </article>
+
+            
+
+            
+                <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'gsoc2018'; 
+
+     
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="mailto:kaivalyaraw@gmail.com">
+        <i class="fa fa-envelope"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.kaivalyarawal.com">
+        <i class="fa fa-globe"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/kaivalyar/">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+    <a class="symbol" href="https://stackoverflow.com/users/10023503/kaivalya-rawal">
+        <i class="fa fa-stack-overflow"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Kaivalya Rawal 2018
+    
+    </p>
+    
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-122258341-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+    </body>
+</html>
