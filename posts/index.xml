@@ -6,10 +6,20 @@
     <description>Recent content in Posts on Markov Logic Networks in Python: PracMLN</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 18 Jul 2018 04:10:07 +0530</lastBuildDate>
+    <lastBuildDate>Mon, 06 Aug 2018 17:43:57 +0800</lastBuildDate>
     
 	<atom:link href="https://kaivalyar.github.io/gsoc18-pracmln/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Speeding Up PracMLN</title>
+      <link>https://kaivalyar.github.io/gsoc18-pracmln/posts/speeding-up-pracmln/</link>
+      <pubDate>Mon, 06 Aug 2018 17:43:57 +0800</pubDate>
+      
+      <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/speeding-up-pracmln/</guid>
+      <description>Upon further analysis of the profiles, I identified a few areas of PracMLN to focus on. This analysis and the resultant edits further sped up the code by ~15%. After much deliberation; the locations of interest were identified to be:
+ the _iterworlds function general speedups across fol.pyx and fuzzy.pyx multiple truth functions in common.pyx  A Setback So my first approach was to quickly type all the relevant variables, and commit my changes.</description>
+    </item>
     
     <item>
       <title>The First Optimisations</title>
