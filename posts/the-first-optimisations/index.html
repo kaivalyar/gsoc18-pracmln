@@ -49,8 +49,8 @@
                         The First Optimisations
                     </h1>
                     <h2 class="headline">
-                    Jul 14, 2018 04:10
-                    · 1207 words
+                    Jul 18, 2018 04:10
+                    · 1212 words
                     · 6 minute read
                       <span class="tags">
                       
@@ -69,7 +69,7 @@
 
 <h1 id="verbosity-reduction">Verbosity Reduction</h1>
 
-<p>A few days back I had <a href="../a-review/#verbosity">reported</a> my inability to reduce the verbosity of the output in my test scripts. This was happening for two separate reasons, both of which were finally identified only by my mentor, Daniel Nyga. Firstly, as verified by the profiles generated, the IO operations weren&rsquo;t really time-consuming. I think this is not a result of IO being efficient, but caused instead by the paucity of print output. Sure, it&rsquo;s enough to inundate a human user, but not really enough to actually slow down a modern computer.</p>
+<p>A few days back I had <a href="../a-review/#verbosity">reported</a> my inability to reduce the verbosity of the output in my test scripts. This was happening for two separate reasons, both of which were finally identified with significant help from my mentor, Daniel Nyga. Firstly, as verified by the profiles generated, the IO operations weren&rsquo;t really time-consuming. I think this is not a result of IO being efficient, but caused instead by the paucity of print output. Sure, it&rsquo;s enough to inundate a human user, but not really enough to actually slow down a modern computer.</p>
 
 <p>That being said, there are two edits required to fix this bug:</p>
 
@@ -80,7 +80,7 @@
 
 <h1 id="aside-pracmln-inference">Aside - PracMLN Inference</h1>
 
-<p>In the same post, I also <a href="../a-review/#other-inference-algorithms">reported</a> how only the <em>Enumeration-Ask</em> algorithm was functioning bug-free. All other (non-cythonised) algorithms were throwing runtime errors. This needed to be fixed so as to not mandate that all future extensions to PRacMLN be made in Cython, and to allow Python too. While this stumped me for a long while, the solution is again embarassingly simple. The <code>mrf</code> variable typed in the <code>Inference</code> class needed to be made <code>public</code>. As explained in the <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html#static-attributes">documentation</a>, its necessary for attributes to be declared <code>public</code> so that Python code can access them. So the error occured because <code>EnumerationAsk(Inference)</code> has already been converted to Cython, and could access the <code>mrf</code> attribute, but the other inference related code like <code>WCSPInference(Inference)</code> is still Python and thus couldn&rsquo;t access <code>mrf</code> from <code>Inference</code>, leading to errors.</p>
+<p>In the same post, I also <a href="../a-review/#other-inference-algorithms">reported</a> how only the <em>Enumeration-Ask</em> algorithm was functioning bug-free. All other (non-cythonised) algorithms were throwing runtime errors. This needed to be fixed so as to not mandate that all future extensions to PracMLN be made in Cython, and to allow Python too. While this stumped me for a long while, the solution is again embarassingly simple. The <code>mrf</code> variable typed in the <code>Inference</code> class needed to be made <code>public</code>. As explained in the <a href="http://cython.readthedocs.io/en/latest/src/userguide/extension_types.html#static-attributes">documentation</a>, its necessary for attributes to be declared <code>public</code> so that Python code can access them. So the error occured because <code>EnumerationAsk(Inference)</code> has already been converted to Cython, and could access the <code>mrf</code> attribute, but the other inference related code like <code>WCSPInference(Inference)</code> is still Python and thus couldn&rsquo;t access <code>mrf</code> from <code>Inference</code>, leading to errors.</p>
 
 <h1 id="investigating-the-profile">Investigating the Profile</h1>
 
@@ -141,7 +141,7 @@
 
 <h1 id="final-optimisations">Final Optimisations</h1>
 
-<p>The final optimisations seem fairly trivial. In a sense, they are trivial - just adding a few words here and there. However, determining what words to add where has been the exercise over this entire project. The techniques and work documented in the last two blog-posts is succintly describes most of the important steps of this process.</p>
+<p>The final optimisations seem fairly trivial. In a sense, they are trivial - just adding a few words here and there. However, determining what words to add where has been the exercise over this entire project. The techniques and work documented in the last two blog-posts succintly describes most of the important steps of this process.</p>
 
 <p>All the final optimisations were made by editing just one file - <code>common.pxd</code>. It turns out that typing attributes defined here sped up the entire <code>logic</code> module that operated upon them. Hidden variables <code>_predname</code> and <code>_negated</code> were typed as <code>str</code> and <code>int</code> respectively. Additionally, the <code>MLN</code> class, which had already been made into an extension-type, was used to type the <code>mln</code> attribute. Lastly, simply adding a <code>cdef __dict__</code> in the relevant classes in the inheritance hierarchy measurably improved PracMLN speed.</p>
 
@@ -149,7 +149,7 @@
 
 <p>I have a feeling that some of the special methods defined in the logic module need improvement, although how exactly to bring this about remains unclear to me. The <a href="http://cython.readthedocs.io/en/latest/src/userguide/special_methods.html">Cython documentation</a> is surprisingly unhelpful about how I may do this. What&rsquo;s certain is that far too much time is spent in the <code>__get__</code>, <code>__str__</code>, <code>__eq__</code> functions.</p>
 
-<p>There still is a long way to go, and I have a feeling that I haven&rsquo;t correctly analysed the profile data. Daniel&rsquo;s suggestion is to now further improve the <code>logic</code> module - with a specific focus on the <code>truth</code> functions, and the <code>iterworlds</code> function and <code>_evidence</code> attribute in the <code>MRF</code> class. This is mostly going to be the next step I take.</p>
+<p>There still is a long way to go, and I have a feeling that the profile data analysis should be improved and made more thorough. Daniel&rsquo;s suggestion is to now further improve the <code>logic</code> module - with a specific focus on the <code>truth</code> functions, and the <code>iterworlds</code> function and <code>_evidence</code> attribute in the <code>MRF</code> class. This is mostly going to be the next step I take.</p>
 
 <!--
 
