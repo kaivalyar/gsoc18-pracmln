@@ -6,10 +6,20 @@
     <description>Recent content on Markov Logic Networks in Python: PracMLN</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 09 Aug 2018 15:23:09 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 10 Aug 2018 17:44:44 +0800</lastBuildDate>
     
 	<atom:link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Final GSoC Report</title>
+      <link>https://kaivalyar.github.io/gsoc18-pracmln/posts/final-gsoc-report/</link>
+      <pubDate>Fri, 10 Aug 2018 17:44:44 +0800</pubDate>
+      
+      <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/final-gsoc-report/</guid>
+      <description>The objective of this project was to bring about a speedup in the PracMLN project. This was to be achieved by concerting Python code to Cython.
+Initial Proposal At first the project was limited to adding typing information to variables and, to convert just the inference and logic modules to Cython. The initial proposal I had submitted proposed to do this by converting the .py files in the inference and learning directories to corresponding .</description>
+    </item>
     
     <item>
       <title>Wrapping Up</title>

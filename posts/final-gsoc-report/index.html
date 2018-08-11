@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>Final GSoC Report &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        Final GSoC Report
+                    </h1>
+                    <h2 class="headline">
+                    Aug 10, 2018 17:44
+                    · 1096 words
+                    · 6 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>The objective of this project was to bring about a speedup in the PracMLN project. This was to be achieved by concerting Python code to Cython.</p>
+
+<h1 id="initial-proposal">Initial Proposal</h1>
+
+<p>At first the project was limited to adding typing information to variables and, to convert just the <em>inference</em> and <em>logic</em> modules to Cython. The initial proposal I had submitted proposed to do this by converting the <code>.py</code> files in the inference and learning directories to corresponding <code>.pyx</code> files. These are ** <em>emphasized</em> ** below, amongst a tree of all PracMLN files:</p>
+
+<pre><code class="language-nohighlight">PracMLN
+├── __init__.py
+├── libpracmln.py
+├── logic
+│   ├── common.py
+│   ├── fol.py
+│   ├── fuzzy.py
+│   ├── grammar.py
+│   ├── __init__.py
+│   └── sat.py
+├── mln
+│   ├── base.py
+│   ├── constants.py
+│   ├── database.py
+│   ├── errors.py
+│   ├── grounding
+│   │   ├── bpll.py
+│   │   ├── common.py
+│   │   ├── default.py
+│   │   ├── fastconj.py
+│   │   └── __init__.py
+│   ├── **inference**
+│   │   ├── **exact.py**
+│   │   ├── **gibbs.py**
+│   │   ├── **infer.py**
+│   │   ├── __init__.py
+│   │   ├── **ipfpm.py**
+│   │   ├── **maxwalk.py**
+│   │   ├── **mcmc.py**
+│   │   ├── **mcsat.py**
+│   │   └── **wcspinfer.py**
+│   ├── __init__.py
+│   ├── **learning**
+│   │   ├── **bpll.py**
+│   │   ├── **cll.py**
+│   │   ├── **common.py**
+│   │   ├── __init__.py
+│   │   ├── **ll.py**
+│   │   ├── **multidb.py**
+│   │   ├── **optimize.py**
+│   │   └── **softeval.py**
+│   ├── methods.py
+│   ├── mlnpreds.py
+│   ├── mrf.py
+│   ├── mrfvars.py
+│   └── util.py
+├── mlnlearn.py
+├── mlnquery.py
+├── test.py
+├── utils
+│   ├── clustering.py
+│   ├── config.py
+│   ├── eval.py
+│   ├── evalSeqLabels.py
+│   ├── graphml.py
+│   ├── __init__.py
+│   ├── latexmath2png.py
+│   ├── locs.py
+│   ├── multicore.py
+│   ├── plot.py
+│   ├── pmml2graphml.py
+│   ├── project.py
+│   ├── sortedcoll.py
+│   ├── undo.py
+│   ├── visualization.py
+│   └── widgets.py
+├── _version -&gt; ../../_version
+├── wcsp
+│   ├── __init__.py
+│   └── wcsp.py
+└── xval.py
+</code></pre>
+
+<h1 id="new-goals">New Goals</h1>
+
+<p>This approach didn&rsquo;t turn out to be very useful. There was very little scope for adding type information, and speedup obtained was negligible. Upon discussing the issue with Daniel, the focus of the project was changed. I now tried to optimise just one inference algorithm: <em>EnumerationAsk</em>, instead of all the learning and all the inference algorithms in PracMLN. The following files were eventually converted to cython (** <em>in emphasis</em> **) over the course of the project:</p>
+
+<pre><code class="language-nohighlight">PracMLN
+├── __init__.py
+├── libpracmln.py
+├── logic
+│   ├── **common.pxd**
+│   ├── **common.pyx**
+│   ├── **fol.pxd**
+│   ├── **fol.pyx**
+│   ├── **fuzzy.pxd**
+│   ├── **fuzzy.pyx**
+│   ├── grammar.py
+│   ├── __init__.py
+│   ├── sat.py
+│   └── setup.py
+├── mln
+│   ├── **base.pxd**
+│   ├── **base.pyx**
+│   ├── constants.py
+│   ├── database.py
+│   ├── errors.py
+│   ├── grounding
+│   │   ├── bpll.py
+│   │   ├── common.py
+│   │   ├── **default.pxd**
+│   │   ├── **default.pyx**
+│   │   ├── fastconj.py
+│   │   ├── __init__.py
+│   │   └── setup.py
+│   ├── inference
+│   │   ├── **exact.pyx**
+│   │   ├── gibbs.pyx
+│   │   ├── **infer.pxd**
+│   │   ├── **infer.pyx**
+│   │   ├── __init__.py
+│   │   ├── ipfpm.pyx
+│   │   ├── maxwalk.pyx
+│   │   ├── mcmc.pyx
+│   │   ├── mcsat.pyx
+│   │   ├── pracmln
+│   │   ├── setup.py
+│   │   └── wcspinfer.pyx
+│   ├── __init__.py
+│   ├── learning
+│   │   ├── bpll.py
+│   │   ├── cll.py
+│   │   ├── common.py
+│   │   ├── __init__.py
+│   │   ├── ll.py
+│   │   ├── multidb.py
+│   │   ├── optimize.py
+│   │   └── softeval.py
+│   ├── methods.py
+│   ├── mini-test.py
+│   ├── **mlnpreds.pxd**
+│   ├── **mlnpreds.pyx**
+│   ├── **mrf.pxd**
+│   ├── **mrf.pyx**
+│   ├── **mrfvars.pxd**
+│   ├── **mrfvars.pyx**
+│   ├── setup.py
+│   ├── **util.pxd**
+│   └── **util.pyx**
+├── mlnlearn.py
+├── mlnquery.py
+├── test.py
+├── utils
+│   ├── clustering.py
+│   ├── config.py
+│   ├── eval.py
+│   ├── evalSeqLabels.py
+│   ├── graphml.py
+│   ├── __init__.py
+│   ├── latexmath2png.py
+│   ├── locs.py
+│   ├── multicore.py
+│   ├── plot.py
+│   ├── pmml2graphml.py
+│   ├── project.py
+│   ├── sortedcoll.py
+│   ├── undo.py
+│   ├── visualization.py
+│   └── widgets.py
+├── _version -&gt; ../../_version
+├── wcsp
+│   ├── __init__.py
+│   └── wcsp.py
+└── xval.py
+</code></pre>
+
+<h1 id="work-done">Work Done</h1>
+
+<p>I worked on the <em>gsoc18-cython</em> branch of <a href="https://github.com/kaivalyar/pracmln/tree/gsoc18-cython">my fork</a> of the <a href="https://github.com/danielnyga/pracmln">original</a> pracmln repository. Over the course of the summer (excluding abandoned and exerimental work), 39 commits were added to this branch, starting from <a href="https://github.com/kaivalyar/pracmln/commit/797706ab9f44102b57ddd411e1151d0a196e8e92">python3 exact.py -&gt; exact.pyx - 797706a</a>, up to <a href="https://github.com/kaivalyar/pracmln/commit/8e92f8667072bd109cd4ef86f5624cf1d27cd416">add links - 8e92f86</a>.</p>
+
+<h1 id="demo">Demo</h1>
+
+<p>I have created a small demonstration to show the results of the work done this summer. Here are the instructions to set up PracMLN and download the demo materials, to replicate the results:</p>
+
+<script src="https://asciinema.org/a/v70Vu5sXl6e33KkeLt44miBSi.js" id="asciicast-v70Vu5sXl6e33KkeLt44miBSi" async data-preload="true" data-speed="2"></script>
+
+<p>After running the above setup commands, the scripts can be run to give:</p>
+
+<script src="https://asciinema.org/a/OPBFtGy8CgCNVGpZCN7DJVjtS.js" id="asciicast-OPBFtGy8CgCNVGpZCN7DJVjtS" async data-preload="true" data-speed="2"></script>
+
+<p>Summarizing the data from this experiment, we get:</p>
+
+<table>
+<thead>
+<tr>
+<th>Tables</th>
+<th align="center">EnumerationAsk</th>
+<th align="right">Complete</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>PracMLN (pure python)</td>
+<td align="center">0.38</td>
+<td align="right">2.76</td>
+</tr>
+
+<tr>
+<td>PracMLN (optimised cython)</td>
+<td align="center">0.16</td>
+<td align="right">1.97</td>
+</tr>
+</tbody>
+</table>
+
+<p>Cython speedup is very apparent in this particular run.</p>
+
+<h1 id="profiles">Profiles</h1>
+
+<p>I have uploaded the cProfile outputs of a demo run of PracMLN in both <a href="https://pastebin.com/rwrmFfHc">pure python</a> and <a href="https://pastebin.com/4KF86p2f">optimised cython</a>. These can be analysed by enthusiasts using <code>pStats</code>, <code>cprofilev</code>, <code>snakeviz</code>, or other profile analysers.</p>
+
+<p>Here are screenshots of the &ldquo;icicle&rdquo; analysis of these files via <code>snakeviz</code>.</p>
+
+
+<figure>
+    
+        <img src="/gsoc18-pracmln/media/PurePython.png" />
+    
+    
+    <figcaption>
+        <h4>Profile of Pure Python PracMLN</h4>
+        
+    </figcaption>
+    
+</figure>
+
+
+<p>The pure python version above took 560 seconds to execute, whereas the sped up cython version below ran in just 373 seconds.</p>
+
+
+<figure>
+    
+        <img src="/gsoc18-pracmln/media/OptimisedCython.png" />
+    
+    
+    <figcaption>
+        <h4>Profile of Optimised Cython PracMLN</h4>
+        
+    </figcaption>
+    
+</figure>
+
+
+<h1 id="final-status">Final Status</h1>
+
+<p>The code is functional, compiles correctly, and runs out of the box (as-is), with functionality identical to that of the <em>master</em> branch. There is a speed gain of about 40% when using the <em>EnumerationAsk</em> algorithm, and about 30% overall.</p>
+
+<h1 id="future-work">Future Work</h1>
+
+<p>Only the <code>EnumerationAsk</code> algorithm has been optimised for performance, and a lot of work remains to be done. Of these, my yet-to-be-finished work on <code>_evidence</code> and <code>truth</code> described in the previous <a href="../wrapping-up/#evidence">blog post</a> is arguably the most important.</p>
+
+<p>This blog is perhaps a good starting point for future contributors to get acquainted with PRacMLN, and select areas for optimisation. The profiles inserted in this blog post give a good idea about the changed bottlenecks in PracMLN, and thus show the progress made so far and simultaneously point towards the work left to be done.</p>
+
+<p>This GSoC project has been full of learning for me, and I am extrememly thankful to my mentor Daniel Nyga, the Insitute of Artificial Intelligence, University of Bremen, and Google for offering me this great opportunity. I hope my work over this summer is useful to the open source community (I assure you my changes haven&rsquo;t done <a href="http://turnoff.us/image/en/what-your-code-looks-like.png">this</a>).</p>
+
+<p>I would be very happy to hear your thoughts in the comments below, and if you are a future contributor with a question, please feel free to reach out. Cheers!</p>
+
+                </section>
+            </article>
+
+            
+
+            
+                <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'gsoc2018'; 
+
+     
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="mailto:kaivalyaraw@gmail.com">
+        <i class="fa fa-envelope"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.kaivalyarawal.com">
+        <i class="fa fa-globe"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/kaivalyar/">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+    <a class="symbol" href="https://stackoverflow.com/users/10023503/kaivalya-rawal">
+        <i class="fa fa-stack-overflow"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Kaivalya Rawal 2018
+    
+    </p>
+    
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-122258341-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+    </body>
+</html>
