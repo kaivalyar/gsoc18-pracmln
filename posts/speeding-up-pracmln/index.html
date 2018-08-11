@@ -50,7 +50,7 @@
                     </h1>
                     <h2 class="headline">
                     Aug 6, 2018 17:43
-                    · 1066 words
+                    · 1071 words
                     · 6 minute read
                       <span class="tags">
                       
@@ -109,7 +109,7 @@ ImportError: cannot import name BinaryVariable
 
 <h1 id="branching">Branching</h1>
 
-<p>More drastic measures were required. At this point, I decided to undo al my commits from the week <strong>(thank Linus Torvalds for Git version control)</strong>. I created three separate branches, and splite my work across them. Special care had to be taken, when checking out between various branches, to recompile the code, and delete/recreate symlinks to the appropriate files.</p>
+<p>More drastic measures were required. At this point, I decided to undo all my commits from the week <strong>(thank Linus Torvalds for Git version control)</strong>. I created three separate branches, and split my work across them. Special care had to be taken, when checking out between various branches, to recompile the code, and delete/recreate symlinks to the appropriate files.</p>
 
 <p>I have now merged these branches into my main <code>gsoc18-cython</code> branch, and the resultant changes, together yield a further ~15% speedup.</p>
 
@@ -121,7 +121,7 @@ ImportError: cannot import name BinaryVariable
 
 <h1 id="truth">truth</h1>
 
-<p>The various <code>truth</code> functions in logic module all accept a <code>world</code> parameter, representing (initially) the <code>evidence</code> presented to the Markov Logic Network. They then evaluate the truth or falsity of the particular <code>Formula</code>. While I successfully converted all of these to cython, there remain singificant unresolved issues.</p>
+<p>The various <code>truth</code> functions in logic module all accept a <code>world</code> parameter, representing (initially) the <code>evidence</code> presented to the Markov Logic Network. They then evaluate the truth or falsity of the particular <code>Formula</code>. While I successfully converted all of these to cython, there remain significant unresolved issues.</p>
 
 <p>The first thing to note is that there are many of them. In the case of <code>Enumeration-Ask</code>, with the smokers and taxonomy tests I was running, particular ones may be more usd than other, but this doesn&rsquo;t generalise further - varying from problem to problem. Here are the all truth functions from <code>common.pyx</code>.</p>
 
@@ -153,11 +153,11 @@ ImportError: cannot import name BinaryVariable
 
 <p>Not much optimisation possible here*!</p>
 
-<p>The funtions marked red in the figure above are the ones that are actually possible to optimise. Bold text is used to indicate significant changes.</p>
+<p>The funtions marked red in the figure above are the ones that are actually possible to optimise. Red text is used to indicate significant changes (in <em>TrueFalse</em> and <em>Equality</em>, respectively).</p>
 
 <p>Finally, the functions are all typed as <code>cpdef</code>. Unitl the cythonisation of PracMLN is complete, this needs to remain, since the functions are often called by python code. Performace can however be greatly improved if the functions can all by redifined with <code>cdef</code>.</p>
 
-<p>*: This is technically untrue. If the functions could be typed as <code>cdef</code>, then they coud make use of C <code>inline</code> functionality, essentially making them as fast as macros. This would provide a tremendous speed gain, but would be possible only once all calling code is Cythonised.</p>
+<p>*: This is technically untrue. If the functions could be typed as <code>cdef</code>, then they could make use of C <code>inline</code> functionality, essentially making them as fast as macros. This would provide a tremendous speed gain, but would be possible only once all calling code is Cythonised.</p>
 
 <h1 id="fol-pyx-and-fuzzy-pyx">fol.pyx and fuzzy.pyx</h1>
 
