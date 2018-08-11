@@ -6,10 +6,20 @@
     <description>Recent content in Posts on Markov Logic Networks in Python: PracMLN</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 06 Aug 2018 17:43:57 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 09 Aug 2018 15:23:09 +0800</lastBuildDate>
     
 	<atom:link href="https://kaivalyar.github.io/gsoc18-pracmln/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Wrapping Up</title>
+      <link>https://kaivalyar.github.io/gsoc18-pracmln/posts/wrapping-up/</link>
+      <pubDate>Thu, 09 Aug 2018 15:23:09 +0800</pubDate>
+      
+      <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/wrapping-up/</guid>
+      <description>As the final GSoC week is about to come to a close, I decided to wrap things up, and finally leave the gsoc18-cython branch in a usable state. This involved pushing minor local changes that had remained uncommitted over the course of the project, from experimental branches, reverting temporary edits already pushed to the remote repository, and thorough testing and blogging.
+_evidence There remains one significant edit that I have not been able to complete.</description>
+    </item>
     
     <item>
       <title>Speeding Up PracMLN</title>

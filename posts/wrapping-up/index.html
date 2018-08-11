@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="Kaivalya Rawal">
+		<meta name="description" content="Student of Computer Science and Artificial Intelligence">
+		<meta name="generator" content="Hugo 0.41" />
+		<title>Wrapping Up &middot; Markov Logic Networks in Python: PracMLN</title>
+		<link rel="shortcut icon" href="https://kaivalyar.github.io/gsoc18-pracmln/images/favicon.ico">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/style.css">
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://kaivalyar.github.io/gsoc18-pracmln/css/font-awesome.min.css">
+		
+
+		
+		<link href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml" rel="alternate" type="application/rss+xml" title="Markov Logic Networks in Python: PracMLN" />
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://kaivalyar.github.io/gsoc18-pracmln/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/posts'>Archive</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/tags'>Tags</a>
+	<a href='https://kaivalyar.github.io/gsoc18-pracmln/about'>About</a>
+
+	
+
+	
+	<a class="cta" href="https://kaivalyar.github.io/gsoc18-pracmln/index.xml">Subscribe</a>
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        Wrapping Up
+                    </h1>
+                    <h2 class="headline">
+                    Aug 9, 2018 15:23
+                    · 1120 words
+                    · 6 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    
+
+<p>As the final GSoC week is about to come to a close, I decided to wrap things up, and finally leave the <code>gsoc18-cython</code> branch in a usable state. This involved pushing minor local changes that had remained uncommitted over the course of the project, from experimental branches, reverting temporary edits already pushed to the remote repository, and thorough testing and blogging.</p>
+
+<h1 id="evidence">_evidence</h1>
+
+<p>There remains one  significant edit that I have not been able to complete. This regards the <code>_evidence</code> variable from the <code>MRF</code> class, that I have written about previously. Cythonising this variable has turned out to be very tricky, and I have realised the final scope of the problem only now. Without explaining how I came to these realisations over the last month, let me assert the changes still required to be made.</p>
+
+<ol>
+<li>Type the <code>_evidence</code> variable to be an <code>array</code> of double precision floats instead of a list.</li>
+<li>Replace all instances of <code>None</code> in the list with <code>-1</code>, a special number being used to denote a <code>None</code> (unassigned) truth value.</li>
+<li>Correspondingly, with <code>None</code> semantics modified, restore functionality by modifying conditional expressions, loops, assignments, etc. This is a very nontrivial step, and extremely difficult to debug.</li>
+<li>It now becomes possible to make significant changes to the <code>truth</code> functions, by typing the parameters as arrays, and return values as floats.</li>
+<li>These changes completely redefine the internal PracMLN API - learning and inference modules use <code>truth</code> functions expecting non-float, <code>None</code> returns, and can&rsquo;t handle the new -1 semantics. All of them need to be appropriately rewritten now!</li>
+</ol>
+
+<p>In all my attempts to go through these steps, I invariably get stuck at number 3. The tricky bit here is that errors generated due to this propogate and are revealed in unrelated locations - exceptions being raised due to truth values being +2, for example. These are near impossible to mitigate, since it is difficult to tell how/when/where the value became +2.</p>
+
+<p>I have been trying to work on this problem, but am currently stuck at step 3, because I didn&rsquo;t execute step 2 properly. My work towards this end is on the <a href="https://github.com/kaivalyar/pracmln/tree/evidence-truth">evidence-truth</a> branch. Hopefully this will eventually get merged into <a href="https://github.com/kaivalyar/pracmln/tree/gsoc18-cython">gsoc18-cython</a>.</p>
+
+<h1 id="enumeration-ask">Enumeration-Ask</h1>
+
+<p>Apart from the changes mentioned here already, there was more (albeit limited) scope for optimisation. I made changes to <code>exact.pyx</code> directly, slightly modifying the code to avoid repetitive computation.</p>
+
+<p>For instance, I changed the <code>soft_evidence_formula</code> from a traversing an entire list</p>
+
+<pre><code>    def soft_evidence_formula(self, gf):
+        truths = [a.truth(self.mrf.evidence) for a in gf.gndatoms()]
+        if None in truths:
+            return False
+        return isinstance(self.mrf.mln.logic, FirstOrderLogic) and any([t in Interval('(0,1)') for t in truths])
+</code></pre>
+
+<p>to traversing part of an array.</p>
+
+<pre><code>    cpdef bint soft_evidence_formula(self, gf):
+        cdef array.array truths = array.array('d', [-1] * len(gf.gndatoms()))
+        cdef int i = 0
+        for i, a in enumerate(gf.gndatoms()):
+            result = a.truth(self.mrf.evidence)
+            if result is None:
+                return False
+            truths[i] = result
+        return isinstance(self.mrf.mln.logic, FirstOrderLogic) and any([ ( t&gt;0 and t&lt;1 ) for t in truths])
+</code></pre>
+
+<h1 id="interval">Interval</h1>
+
+<p>I also noticed a significant amount of time being spent in the <code>Interval</code> class (from <code>util.pyx</code>). While the class itself couldn&rsquo;t be optimised, it was easy to reduce its usage. I imagine that in the future, as more PracMLN algorithms are developed, they could be initially written in Python, using code such as <code>Interval( ... )</code>, but could later by optimised via Cython, with the usage of such code reduced drastically.</p>
+
+<p>For instance, from the example above, notice <code>t in Interval('(0,1)')</code> has been replaced with <code>( t&gt;0 and t&lt;1 )</code>, reducing function call overhead, and the regex (<code>r'(\(|\[|\])([-+]?\d*\.\d+|\d+),([-+]?\d*\.\d+|\d+)(\)|\]|\[)'</code>) parsing inside <code>Interval</code> drastically. In the same file, <code>exact.pyx</code>, I replaced <code>if truth in Interval(']0,1['):</code> with <code>if truth &gt; 0 and truth &lt; 1:</code>; with identical semantics.</p>
+
+<h1 id="special-methods">Special Methods</h1>
+
+<p>I had mentioned earlier how various <a href="../the-first-optimisations/#investigating-the-profile">special methods</a> had a lot of speedup potential. While the <a href="http://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#special-methods">Cython documentation</a> doesn&rsquo;t allow for much optimisation of these, I managed to make some progress on this front.</p>
+
+<p>It turns out that in the case of PracMLN, the major usage of these was <code>__eq__</code>, in the logic module, which in turn used <code>__str__</code> to test the equality of <code>GroundAtom</code> instances.</p>
+
+<pre><code>def __str__(self):
+    return &quot;%s(%s)&quot; % (self.predname, &quot;,&quot;.join(self.args))
+
+def __eq__(self, other):
+    return str(self) == str(other)
+</code></pre>
+
+<p>This could be refactored so the <code>__eq__</code> directly tested <code>self.predname</code> and <code>self.args</code>. This led to significant improvement.</p>
+
+<pre><code>def __eq__(self, other):
+    return (self.predname == other.predname) and (self.args == other.args)
+</code></pre>
+
+<h1 id="grounding">Grounding</h1>
+
+<p>Lastly, I noticed that the <code>itergroundings</code> function was significantly time consuming. I wanted to define this using <code>cdef</code>, however the usage of <code>yield</code> doesn&rsquo;t allow this, despite Cython apparently <a href="https://groups.google.com/forum/#!topic/cython-users/DSJ_DlwCHHw">adding support</a> for this Python feature.</p>
+
+<pre><code>Compiling default.pyx because it changed.
+[1/1] Cythonizing default.pyx
+
+Error compiling Cython file:
+------------------------------------------------------------
+...
+            self._cacheinit()
+        cdef int counter = -1
+        while True:
+            counter += 1
+            if self.iscached and len(self._cache) &gt; counter:
+                yield self._cache[counter]
+               ^
+------------------------------------------------------------
+
+default.pyx:110:16: 'yield' not supported here
+
+Error compiling Cython file:
+------------------------------------------------------------
+...
+                except StopIteration:
+                    self.__cachecomplete = True
+                    return
+                else:
+                    self._cache.append(gf)
+                    yield gf
+                   ^
+------------------------------------------------------------
+
+default.pyx:119:20: 'yield' not supported here
+Traceback (most recent call last):
+  File &quot;setup.py&quot;, line 5, in &lt;module&gt;
+    ext_modules=cythonize(&quot;*.pyx&quot;, compiler_directives={'profile': True})
+  File &quot;/home/kaivalya/ ... /lib/python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1026, in cythonize
+    cythonize_one(*args)
+  File &quot;/home/kaivalya/ ... /lib/python3.5/site-packages/Cython/Build/Dependencies.py&quot;, line 1146, in cythonize_one
+    raise CompileError(None, pyx_file)
+Cython.Compiler.Errors.CompileError: default.pyx
+
+</code></pre>
+
+<p>However, I converted (trivially) the <code>DefaultGroundingFactory</code> into an extension type anyways. I also recall, in one of my early discussions with Daniel, that optimising the grounding module would eventually lead to a significant speedup. Many variables were typed in this class, however I think that if the cacheing semantics could be modified to avoid the use of <code>None</code>, further speedup could be obtained by typing <code>_cache</code> as an array.</p>
+
+<pre><code>cdef class DefaultGroundingFactory():
+    cdef public MRF mrf
+    cdef public list _cache
+    cdef int _cachesize
+    cdef int total_gf
+    cdef bint __cacheinit
+    cdef bint __cachecomplete
+    cdef dict _params
+    cdef dict __dict__
+</code></pre>
+
+<h1 id="miscellaneous-edits">Miscellaneous Edits</h1>
+
+<p>I also made some miscellaneous edits over the course of this last week, more for the sake of consistency than actually measurable performance gain. For examle, I typed remaining <code>MRF</code> attributes <code>_variables</code>, <code>_gndatoms</code> and <code>_gndatoms_indices</code>, and redefining the <code>gndatoms(self, l)</code> functions in <code>common.pyx</code> with <code>cpdef</code>. I wanted to optimise this further, but was limited by similar problems to those described for the <a href="../speeding-up-pracmln/#truth">truth</a> functions in the previous blog post.</p>
+
+<h1 id="conluding">Conluding</h1>
+
+<p>With these changes, my work on the <code>gsoc18-cython</code> branch comes to a close. To make the code ready to work out of the box, I removed the profiling related compiler directives, and the <code>[Cython]</code> print-upon-import statement I had inserted earlier. I hope to continue returning to this from time to time, with fresh ideas.</p>
+
+<p>If you are a PracMLN user, I would urge you to checkout the <code>gsoc18-cython</code> branch, and use it! I welcome any feedback, error-reports, or advice regarding further improvement. Please feel free to comment below this post to reach out to me. Cheers!</p>
+
+                </section>
+            </article>
+
+            
+
+            
+                <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'gsoc2018'; 
+
+     
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+            
+
+            
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="mailto:kaivalyaraw@gmail.com">
+        <i class="fa fa-envelope"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.github.com/kaivalyar">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.kaivalyarawal.com">
+        <i class="fa fa-globe"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/kaivalyar/">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+    <a class="symbol" href="https://stackoverflow.com/users/10023503/kaivalya-rawal">
+        <i class="fa fa-stack-overflow"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Kaivalya Rawal 2018
+    
+    </p>
+    
+</footer>
+
+        </section>
+
+        <script src="https://kaivalyar.github.io/gsoc18-pracmln/js/jquery-3.3.1.min.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/main.js"></script>
+<script src="https://kaivalyar.github.io/gsoc18-pracmln/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+  
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-122258341-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+    </body>
+</html>
