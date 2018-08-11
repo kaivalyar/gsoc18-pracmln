@@ -974,3 +974,13 @@ a.symbol:hover {
 .asciicast {
     text-align: center;
 }
+
+.khighO {
+    color: rgb(220, 20, 20);
+    font-weight: bold;
+}
+
+.khighN {
+    color: rgb(30, 150, 40);
+    font-weight: bold;
+}

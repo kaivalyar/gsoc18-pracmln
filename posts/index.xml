@@ -17,7 +17,7 @@
       <pubDate>Fri, 10 Aug 2018 17:44:44 +0800</pubDate>
       
       <guid>https://kaivalyar.github.io/gsoc18-pracmln/posts/final-gsoc-report/</guid>
-      <description>The objective of this project was to bring about a speedup in the PracMLN project. This was to be achieved by concerting Python code to Cython.
+      <description>The objective of this project was to bring about a speedup in the PracMLN project. This was to be achieved by converting Python code to Cython.
 Initial Proposal At first the project was limited to adding typing information to variables and, to convert just the inference and logic modules to Cython. The initial proposal I had submitted proposed to do this by converting the .py files in the inference and learning directories to corresponding .</description>
     </item>
     

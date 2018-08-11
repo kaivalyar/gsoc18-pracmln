@@ -50,7 +50,7 @@
                     </h1>
                     <h2 class="headline">
                     Aug 10, 2018 17:44
-                    · 1096 words
+                    · 1151 words
                     · 6 minute read
                       <span class="tags">
                       
@@ -61,13 +61,19 @@
                 <section id="post-body">
                     
 
-<p>The objective of this project was to bring about a speedup in the PracMLN project. This was to be achieved by concerting Python code to Cython.</p>
+<p>The objective of this project was to bring about a speedup in the PracMLN project. This was to be achieved by converting Python code to Cython.</p>
 
 <h1 id="initial-proposal">Initial Proposal</h1>
 
-<p>At first the project was limited to adding typing information to variables and, to convert just the <em>inference</em> and <em>logic</em> modules to Cython. The initial proposal I had submitted proposed to do this by converting the <code>.py</code> files in the inference and learning directories to corresponding <code>.pyx</code> files. These are ** <em>emphasized</em> ** below, amongst a tree of all PracMLN files:</p>
+<p>At first the project was limited to adding typing information to variables and, to convert just the <em>inference</em> and <em>logic</em> modules to Cython. The initial proposal I had submitted proposed to do this by converting the <code>.py</code> files in the inference and learning directories to corresponding <code>.pyx</code> files. These are <span class="khighO">emphasized</span> below, amongst a tree of all PracMLN files.</p>
 
-<pre><code class="language-nohighlight">PracMLN
+<h1 id="new-goals">New Goals</h1>
+
+<p>This approach didn&rsquo;t turn out to be very useful. There was very little scope for adding type information, and speedup obtained was negligible. Upon discussing the issue with Daniel, the focus of the project was changed. I now tried to optimise just one inference algorithm: <em>EnumerationAsk</em>, instead of all the learning and all the inference algorithms in PracMLN. The files that were eventually converted to cython over the course of the project are <span class="khighN">emphasized</span> in the file tree below.</p>
+
+<pre>
+<code class="language-nohighlight" style="width: 50%; float: left; box-shadow: none; clear: left;">
+<span class="khighO">PracMLN</span>
 ├── __init__.py
 ├── libpracmln.py
 ├── logic
@@ -77,7 +83,7 @@
 │   ├── grammar.py
 │   ├── __init__.py
 │   └── sat.py
-├── mln
+├── <span class="khighO">mln</span>
 │   ├── base.py
 │   ├── constants.py
 │   ├── database.py
@@ -88,26 +94,26 @@
 │   │   ├── default.py
 │   │   ├── fastconj.py
 │   │   └── __init__.py
-│   ├── **inference**
-│   │   ├── **exact.py**
-│   │   ├── **gibbs.py**
-│   │   ├── **infer.py**
+│   ├── <span class="khighO">inference </span>
+│   │   ├── <span class="khighO">exact.py </span>
+│   │   ├── <span class="khighO">gibbs.py </span>
+│   │   ├── <span class="khighO">infer.py </span>
 │   │   ├── __init__.py
-│   │   ├── **ipfpm.py**
-│   │   ├── **maxwalk.py**
-│   │   ├── **mcmc.py**
-│   │   ├── **mcsat.py**
-│   │   └── **wcspinfer.py**
+│   │   ├── <span class="khighO">ipfpm.py </span>
+│   │   ├── <span class="khighO">maxwalk.py </span>
+│   │   ├── <span class="khighO">mcmc.py </span>
+│   │   ├── <span class="khighO">mcsat.py </span>
+│   │   └── <span class="khighO">wcspinfer.py </span>
 │   ├── __init__.py
-│   ├── **learning**
-│   │   ├── **bpll.py**
-│   │   ├── **cll.py**
-│   │   ├── **common.py**
+│   ├── <span class="khighO">learning </span>
+│   │   ├── <span class="khighO">bpll.py </span>
+│   │   ├── <span class="khighO">cll.py </span>
+│   │   ├── <span class="khighO">common.py </span>
 │   │   ├── __init__.py
-│   │   ├── **ll.py**
-│   │   ├── **multidb.py**
-│   │   ├── **optimize.py**
-│   │   └── **softeval.py**
+│   │   ├── <span class="khighO">ll.py </span>
+│   │   ├── <span class="khighO">multidb.py </span>
+│   │   ├── <span class="khighO">optimize.py </span>
+│   │   └── <span class="khighO">softeval.py </span>
 │   ├── methods.py
 │   ├── mlnpreds.py
 │   ├── mrf.py
@@ -133,50 +139,45 @@
 │   ├── undo.py
 │   ├── visualization.py
 │   └── widgets.py
-├── _version -&gt; ../../_version
+├── _version -> ../../_version
 ├── wcsp
 │   ├── __init__.py
 │   └── wcsp.py
 └── xval.py
-</code></pre>
-
-<h1 id="new-goals">New Goals</h1>
-
-<p>This approach didn&rsquo;t turn out to be very useful. There was very little scope for adding type information, and speedup obtained was negligible. Upon discussing the issue with Daniel, the focus of the project was changed. I now tried to optimise just one inference algorithm: <em>EnumerationAsk</em>, instead of all the learning and all the inference algorithms in PracMLN. The following files were eventually converted to cython (** <em>in emphasis</em> **) over the course of the project:</p>
-
-<pre><code class="language-nohighlight">PracMLN
+</code><code class="language-nohighlight" style="width: 50%; float: right; clear: right; box-shadow: none;">
+<span class="khighN">PracMLN</span>
 ├── __init__.py
 ├── libpracmln.py
-├── logic
-│   ├── **common.pxd**
-│   ├── **common.pyx**
-│   ├── **fol.pxd**
-│   ├── **fol.pyx**
-│   ├── **fuzzy.pxd**
-│   ├── **fuzzy.pyx**
+├── <span class="khighN">logic</span>
+│   ├── <span class="khighN">common.pxd </span>
+│   ├── <span class="khighN">common.pyx </span>
+│   ├── <span class="khighN">fol.pxd </span>
+│   ├── <span class="khighN">fol.pyx </span>
+│   ├── <span class="khighN">fuzzy.pxd </span>
+│   ├── <span class="khighN">fuzzy.pyx </span>
 │   ├── grammar.py
 │   ├── __init__.py
 │   ├── sat.py
 │   └── setup.py
-├── mln
-│   ├── **base.pxd**
-│   ├── **base.pyx**
+├── <span class="khighN">mln</span>
+│   ├── <span class="khighN">base.pxd </span>
+│   ├── <span class="khighN">base.pyx </span>
 │   ├── constants.py
 │   ├── database.py
 │   ├── errors.py
-│   ├── grounding
+│   ├── <span class="khighN">grounding</span>
 │   │   ├── bpll.py
 │   │   ├── common.py
-│   │   ├── **default.pxd**
-│   │   ├── **default.pyx**
+│   │   ├── <span class="khighN">default.pxd </span>
+│   │   ├── <span class="khighN">default.pyx </span>
 │   │   ├── fastconj.py
 │   │   ├── __init__.py
 │   │   └── setup.py
-│   ├── inference
-│   │   ├── **exact.pyx**
+│   ├── <span class="khighN">inference</span>
+│   │   ├── <span class="khighN">exact.pyx </span>
 │   │   ├── gibbs.pyx
-│   │   ├── **infer.pxd**
-│   │   ├── **infer.pyx**
+│   │   ├── <span class="khighN">infer.pxd </span>
+│   │   ├── <span class="khighN">infer.pyx </span>
 │   │   ├── __init__.py
 │   │   ├── ipfpm.pyx
 │   │   ├── maxwalk.pyx
@@ -196,16 +197,15 @@
 │   │   ├── optimize.py
 │   │   └── softeval.py
 │   ├── methods.py
-│   ├── mini-test.py
-│   ├── **mlnpreds.pxd**
-│   ├── **mlnpreds.pyx**
-│   ├── **mrf.pxd**
-│   ├── **mrf.pyx**
-│   ├── **mrfvars.pxd**
-│   ├── **mrfvars.pyx**
+│   ├── <span class="khighN">mlnpreds.pxd </span>
+│   ├── <span class="khighN">mlnpreds.pyx </span>
+│   ├── <span class="khighN">mrf.pxd </span>
+│   ├── <span class="khighN">mrf.pyx </span>
+│   ├── <span class="khighN">mrfvars.pxd </span>
+│   ├── <span class="khighN">mrfvars.pyx </span>
 │   ├── setup.py
-│   ├── **util.pxd**
-│   └── **util.pyx**
+│   ├── <span class="khighN">util.pxd </span>
+│   └── <span class="khighN">util.pyx </span>
 ├── mlnlearn.py
 ├── mlnquery.py
 ├── test.py
@@ -226,16 +226,19 @@
 │   ├── undo.py
 │   ├── visualization.py
 │   └── widgets.py
-├── _version -&gt; ../../_version
+├── _version -> ../../_version
 ├── wcsp
 │   ├── __init__.py
 │   └── wcsp.py
 └── xval.py
-</code></pre>
+</code class="language-nohighlight">
+</pre>
+
+<div style="clear: both;"></div>
 
 <h1 id="work-done">Work Done</h1>
 
-<p>I worked on the <em>gsoc18-cython</em> branch of <a href="https://github.com/kaivalyar/pracmln/tree/gsoc18-cython">my fork</a> of the <a href="https://github.com/danielnyga/pracmln">original</a> pracmln repository. Over the course of the summer (excluding abandoned and exerimental work), 39 commits were added to this branch, starting from <a href="https://github.com/kaivalyar/pracmln/commit/797706ab9f44102b57ddd411e1151d0a196e8e92">python3 exact.py -&gt; exact.pyx - 797706a</a>, up to <a href="https://github.com/kaivalyar/pracmln/commit/8e92f8667072bd109cd4ef86f5624cf1d27cd416">add links - 8e92f86</a>.</p>
+<p>I worked on the <em>gsoc18-cython</em> branch of <a href="https://github.com/kaivalyar/pracmln/tree/gsoc18-cython">my fork</a> of the <a href="https://github.com/danielnyga/pracmln">original</a> pracmln repository. Over the course of the summer (excluding abandoned and exerimental work), 39 commits were added to this branch, starting from <a href="https://github.com/kaivalyar/pracmln/commit/797706ab9f44102b57ddd411e1151d0a196e8e92">python3 exact.py -&gt; exact.pyx - 797706a</a>, up to <a href="https://github.com/kaivalyar/pracmln/commit/8e92f8667072bd109cd4ef86f5624cf1d27cd416">add links - 8e92f86</a>. I have also simultaneously developed some rudimentory testing scripts that might be of some use to future developers. These can be found in my <a href="https://github.com/kaivalyar/PracTests/">PracTests repository</a>.</p>
 
 <h1 id="demo">Demo</h1>
 
@@ -247,33 +250,47 @@
 
 <script src="https://asciinema.org/a/OPBFtGy8CgCNVGpZCN7DJVjtS.js" id="asciicast-OPBFtGy8CgCNVGpZCN7DJVjtS" async data-preload="true" data-speed="2"></script>
 
-<p>Summarizing the data from this experiment, we get:</p>
+<p>We can now tabulate the data from this experiment.</p>
+
+<!--
+
+| .   | EnumerationAsk| All Algorithms |
+|----------|:-------------:|------:|
+| PracMLN (pure python) |  0.38s  | 2.76s |
+| PracMLN (optimised cython) |  0.16s  |   1.97s |
+
+
+|    | <span style="text-align: center;">PracMLN<br>(pure python)</span> | <span style="text-align: center;">PracMLN<br>(optimised cython)</span> |
+|----------|:-------------:|------:|
+| **Enumeration-Ask** |  0.38s  | 0.16s |
+| **All Inference and Learning Algorithms** |  2.76s  |   1.97s |
+
+-->
 
 <table>
+<caption style="font-family: inherit; font-size: 120%; color: black; font-weight: bold;">PracMLN Runtimes - Python vs Cython</caption>
 <thead>
 <tr>
-<th>Tables</th>
-<th align="center">EnumerationAsk</th>
-<th align="right">Complete</th>
+<th></th>
+<th align="center" style="text-align: center;">PracMLN<br>(pure python)</th>
+<th align="right" style="text-align: center;">PracMLN<br>(optimised cython)</th>
 </tr>
 </thead>
 
 <tbody>
 <tr>
-<td>PracMLN (pure python)</td>
-<td align="center">0.38</td>
-<td align="right">2.76</td>
+<td><strong>Enumeration-Ask</strong></td>
+<td align="center" style="text-align: center;">0.38s</td>
+<td align="right" style="text-align: center;">0.16s</td>
 </tr>
 
 <tr>
-<td>PracMLN (optimised cython)</td>
-<td align="center">0.16</td>
-<td align="right">1.97</td>
+<td><strong>All Inference and Learning Algorithms</strong></td>
+<td align="center" style="text-align: center;">2.76s</td>
+<td align="right" style="text-align: center;">1.97s</td>
 </tr>
 </tbody>
 </table>
-
-<p>Cython speedup is very apparent in this particular run.</p>
 
 <h1 id="profiles">Profiles</h1>
 
@@ -295,7 +312,7 @@
 </figure>
 
 
-<p>The pure python version above took 560 seconds to execute, whereas the sped up cython version below ran in just 373 seconds.</p>
+<p>The pure <strong>python version above took 560 seconds</strong> to execute, whereas the sped up <strong>cython version below ran in just 373 seconds</strong>.</p>
 
 
 <figure>
@@ -319,9 +336,9 @@
 
 <p>Only the <code>EnumerationAsk</code> algorithm has been optimised for performance, and a lot of work remains to be done. Of these, my yet-to-be-finished work on <code>_evidence</code> and <code>truth</code> described in the previous <a href="../wrapping-up/#evidence">blog post</a> is arguably the most important.</p>
 
-<p>This blog is perhaps a good starting point for future contributors to get acquainted with PRacMLN, and select areas for optimisation. The profiles inserted in this blog post give a good idea about the changed bottlenecks in PracMLN, and thus show the progress made so far and simultaneously point towards the work left to be done.</p>
+<p>This blog is perhaps a good starting point for future contributors to get acquainted with PRacMLN, and select areas for optimisation. The profiles inserted in this blog post give a good idea about the evolution of the bottlenecks in PracMLN, and thus show the progress made so far and simultaneously point towards the work left to be done.</p>
 
-<p>This GSoC project has been full of learning for me, and I am extrememly thankful to my mentor Daniel Nyga, the Insitute of Artificial Intelligence, University of Bremen, and Google for offering me this great opportunity. I hope my work over this summer is useful to the open source community (I assure you my changes haven&rsquo;t done <a href="http://turnoff.us/image/en/what-your-code-looks-like.png">this</a>).</p>
+<p>I have learnt a lot from this GSoC project. I am extrememly thankful to my mentor Daniel Nyga, to the Insitute of Artificial Intelligence, University of Bremen, and to Google for offering me this great opportunity. I hope my work over this summer is useful to the open source community (I assure you my changes haven&rsquo;t done <a href="http://turnoff.us/image/en/what-your-code-looks-like.png">this</a>).</p>
 
 <p>I would be very happy to hear your thoughts in the comments below, and if you are a future contributor with a question, please feel free to reach out. Cheers!</p>
 
