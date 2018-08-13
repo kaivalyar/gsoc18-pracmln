@@ -50,7 +50,7 @@
                     </h1>
                     <h2 class="headline">
                     Aug 6, 2018 17:43
-                    · 1067 words
+                    · 1068 words
                     · 6 minute read
                       <span class="tags">
                       
@@ -115,7 +115,7 @@ ImportError: cannot import name BinaryVariable
 
 <h1 id="iterworlds">iterworlds</h1>
 
-<p>To properly Cythonise and speedup <code>iterworlds</code> (from <code>mrf.pyx</code>), some other changes needed to be made too. Namely, <code>util.py</code> and <code>mrfvars.py</code> were converted into <code>util.pyx</code> and <code>mrfvars.pyx</code> respectively. This was done so that <code>CallByRef()</code> and <code>MRFVariable()</code> could be made into extension types. In fact, not doing this was responsible for causing many of the errors previously encountered.</p>
+<p>To properly Cythonise and speed up <code>iterworlds</code> (from <code>mrf.pyx</code>), some other changes needed to be made too. Namely, <code>util.py</code> and <code>mrfvars.py</code> were converted into <code>util.pyx</code> and <code>mrfvars.pyx</code> respectively. This was done so that <code>CallByRef()</code> and <code>MRFVariable()</code> could be made into extension types. In fact, not doing this was responsible for causing many of the errors previously encountered.</p>
 
 <p>Cythonising <code>_iterworlds( ...  )</code> was then trivial, and accomplished without major complications worth documenting.</p>
 
@@ -123,7 +123,7 @@ ImportError: cannot import name BinaryVariable
 
 <p>The various <code>truth</code> functions in logic module all accept a <code>world</code> parameter, representing (initially) the <code>evidence</code> presented to the Markov Logic Network. They then evaluate the truth or falsity of the particular <code>Formula</code>. While I successfully converted all of these to cython, there remain significant unresolved issues.</p>
 
-<p>The first thing to note is that there are many of them. In the case of <code>Enumeration-Ask</code>, with the smokers and taxonomy tests I was running, particular ones may be more usd than other, but this doesn&rsquo;t generalise further - varying from problem to problem. Here are the all truth functions from <code>common.pyx</code>.</p>
+<p>The first thing to note is that there are many of them. In the case of <code>Enumeration-Ask</code>, with the smokers and taxonomy tests I was running, particular ones may be more used than other, but this doesn&rsquo;t generalise further - varying from task to task. Here are the all truth functions from <code>common.pyx</code>.</p>
 
 
 <figure>

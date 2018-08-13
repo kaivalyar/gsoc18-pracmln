@@ -85,24 +85,24 @@
 
 <p>For instance, I changed the <code>soft_evidence_formula</code> from a traversing an entire list</p>
 
-<pre><code>    def soft_evidence_formula(self, gf):
-        truths = [a.truth(self.mrf.evidence) for a in gf.gndatoms()]
-        if None in truths:
-            return False
-        return isinstance(self.mrf.mln.logic, FirstOrderLogic) and any([t in Interval('(0,1)') for t in truths])
+<pre><code>def soft_evidence_formula(self, gf):
+    truths = [a.truth(self.mrf.evidence) for a in gf.gndatoms()]
+    if None in truths:
+        return False
+    return isinstance(self.mrf.mln.logic, FirstOrderLogic) and any([t in Interval('(0,1)') for t in truths])
 </code></pre>
 
 <p>to traversing part of an array.</p>
 
-<pre><code>    cpdef bint soft_evidence_formula(self, gf):
-        cdef array.array truths = array.array('d', [-1] * len(gf.gndatoms()))
-        cdef int i = 0
-        for i, a in enumerate(gf.gndatoms()):
-            result = a.truth(self.mrf.evidence)
-            if result is None:
-                return False
-            truths[i] = result
-        return isinstance(self.mrf.mln.logic, FirstOrderLogic) and any([ ( t&gt;0 and t&lt;1 ) for t in truths])
+<pre><code>cpdef bint soft_evidence_formula(self, gf):
+    cdef array.array truths = array.array('d', [-1] * len(gf.gndatoms()))
+    cdef int i = 0
+    for i, a in enumerate(gf.gndatoms()):
+        result = a.truth(self.mrf.evidence)
+        if result is None:
+            return False
+        truths[i] = result
+    return isinstance(self.mrf.mln.logic, FirstOrderLogic) and any([ ( t&gt;0 and t&lt;1 ) for t in truths])
 </code></pre>
 
 <h1 id="interval">Interval</h1>
@@ -192,7 +192,7 @@ Cython.Compiler.Errors.CompileError: default.pyx
 
 <p>I also made some miscellaneous edits over the course of this last week, more for the sake of consistency than actually measurable performance gain. For examle, I typed remaining <code>MRF</code> attributes <code>_variables</code>, <code>_gndatoms</code> and <code>_gndatoms_indices</code>, and redefining the <code>gndatoms(self, l)</code> functions in <code>common.pyx</code> with <code>cpdef</code>. I wanted to optimise this further, but was limited by similar problems to those described for the <a href="../speeding-up-pracmln/#truth">truth</a> functions in the previous blog post.</p>
 
-<h1 id="conluding">Conluding</h1>
+<h1 id="conclusion">Conclusion</h1>
 
 <p>With these changes, my work on the <code>gsoc18-cython</code> branch comes to a close. To make the code ready to work out of the box, I removed the profiling related compiler directives, and the <code>[Cython]</code> print-upon-import statement I had inserted earlier. I hope to continue returning to this from time to time, with fresh ideas.</p>
 

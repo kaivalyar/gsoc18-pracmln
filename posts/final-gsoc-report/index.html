@@ -50,8 +50,8 @@
                     </h1>
                     <h2 class="headline">
                     Aug 10, 2018 17:44
-                    · 1151 words
-                    · 6 minute read
+                    · 1400 words
+                    · 7 minute read
                       <span class="tags">
                       
                       </span>
@@ -238,11 +238,37 @@
 
 <h1 id="work-done">Work Done</h1>
 
-<p>I worked on the <em>gsoc18-cython</em> branch of <a href="https://github.com/kaivalyar/pracmln/tree/gsoc18-cython">my fork</a> of the <a href="https://github.com/danielnyga/pracmln">original</a> pracmln repository. Over the course of the summer (excluding abandoned and exerimental work), 39 commits were added to this branch, starting from <a href="https://github.com/kaivalyar/pracmln/commit/797706ab9f44102b57ddd411e1151d0a196e8e92">python3 exact.py -&gt; exact.pyx - 797706a</a>, up to <a href="https://github.com/kaivalyar/pracmln/commit/8e92f8667072bd109cd4ef86f5624cf1d27cd416">add links - 8e92f86</a>. I have also simultaneously developed some rudimentory testing scripts that might be of some use to future developers. These can be found in my <a href="https://github.com/kaivalyar/PracTests/">PracTests repository</a>.</p>
+<p>I worked on the <em>gsoc18-cython</em> branch of <a href="https://github.com/kaivalyar/pracmln/tree/gsoc18-cython">my fork</a> of the <a href="https://github.com/danielnyga/pracmln">original</a> pracmln repository. Over the course of the summer (excluding abandoned and exerimental work), 39 commits were added to this branch, starting from <a href="https://github.com/kaivalyar/pracmln/commit/797706ab9f44102b57ddd411e1151d0a196e8e92">python3 exact.py -&gt; exact.pyx (797706a)</a>, up to <a href="https://github.com/kaivalyar/pracmln/commit/8e92f8667072bd109cd4ef86f5624cf1d27cd416">add links (8e92f86)</a>.</p>
+
+<p>A more technical desription of my work can be obtained by perusing the other posts on this blog, which document my weekly progress. Here is a list of posts, in chronological order, with a short synopsis of each.</p>
+
+<ol>
+<li><strong><a href="../welcome/">Welcome</a></strong>: Overview of GSoC, IAI, and PracMLN, along with my project abstract and proposal.</li>
+<li><strong><a href="../pracmln-and-markov-logic-networks/">PracMLN and Markov Logic Network</a></strong>: Very brief introduction to MLNs, Python, and Cython.</li>
+<li><strong><a href="../mln-inference/">MLN Inference</a></strong>: Understanding PracMLN, and setting it up for development.</li>
+<li><strong><a href="../enumerationask/">EnumerationAsk</a></strong>: Cython extension types, and <code>exact.pyx</code> dependencies, errors, and solutions.</li>
+<li><strong><a href="../the-logic-module/">The Logic Module</a></strong>: Complications with Cythonising the <code>logic</code> module, and their resolution.</li>
+<li><strong><a href="../a-review/">A review</a></strong>: Mid-project overview of work done.</li>
+<li><strong><a href="../profiling/">Profiling</a></strong>: Notes on profiling Cython code, with an emphasis on PracMLN.</li>
+<li><strong><a href="../the-first-optimisations/">The First Optimisations</a></strong>: Description of PracMLN bottlenecks, and possbile optimisation workflows.</li>
+<li><strong><a href="../speeding-up-pracmln/">Speeding Up PracMLN</a></strong>: Profound Cython interventions and their effects on PracMLN performance.</li>
+<li><strong><a href="../wrapping-up/">Wrapping Up</a></strong>: Miscellaneous work, restoration of functionality, and final code edits.</li>
+<li><strong><a href="#">Final GSoC Report</a></strong>: Report created to maintain compliance with Google guidelines.</li>
+</ol>
+
+<p>Additionally, I have also simultaneously developed some rudimentory testing scripts that might be of some use to future developers. These can be found in my <a href="https://github.com/kaivalyar/PracTests/">PracTests repository</a>.</p>
 
 <h1 id="demo">Demo</h1>
 
-<p>I have created a small demonstration to show the results of the work done this summer. Here are the instructions to set up PracMLN and download the demo materials, to replicate the results:</p>
+<p>I have created a small demonstration to show the results of the work done this summer. This is adapted from the PracTests repository itself. It contains the following materials:</p>
+
+<ol>
+<li><strong>Complete</strong>: A complete test of all <em>learning</em> and <em>inference</em> algorithms currently implemented in PracMLN. Uses a tiny version of the <em>smokers</em> MLN.</li>
+<li><strong>EnumerationAsk</strong>: A larger test, but of only the <em>EnumerationAsk</em> inference algorithm. Used to measurably demonstrate the progress made over the summer.</li>
+<li><strong>requirements.txt</strong>: Helper file to direct <code>pip</code> to install all dependencies to run the demo scripts (ie. typical PracMLN requirements + Cython).</li>
+</ol>
+
+<p>Here are the instructions to set up PracMLN and download the <a href="https://github.com/kaivalyar/GSoC18-Demo">demo materials</a>, to replicate the results:</p>
 
 <script src="https://asciinema.org/a/v70Vu5sXl6e33KkeLt44miBSi.js" id="asciicast-v70Vu5sXl6e33KkeLt44miBSi" async data-preload="true" data-speed="2"></script>
 
@@ -268,7 +294,7 @@
 -->
 
 <table>
-<caption style="font-family: inherit; font-size: 120%; color: black; font-weight: bold;">PracMLN Runtimes - Python vs Cython</caption>
+<caption style="font-family: inherit; font-size: 120%; color: black; font-weight: bold; letter-spacing: 0.5px;">PracMLN Runtimes - Python vs Cython</caption>
 <thead>
 <tr>
 <th></th>
@@ -292,9 +318,11 @@
 </tbody>
 </table>
 
+<p>The outcomes of the project can thus be easily seen from this data.</p>
+
 <h1 id="profiles">Profiles</h1>
 
-<p>I have uploaded the cProfile outputs of a demo run of PracMLN in both <a href="https://pastebin.com/rwrmFfHc">pure python</a> and <a href="https://pastebin.com/4KF86p2f">optimised cython</a>. These can be analysed by enthusiasts using <code>pStats</code>, <code>cprofilev</code>, <code>snakeviz</code>, or other profile analysers.</p>
+<p>I have uploaded the cProfile outputs of a sample run of PracMLN in both <a href="https://pastebin.com/rwrmFfHc">pure python</a> and <a href="https://pastebin.com/4KF86p2f">optimised cython</a>. These can be analysed by enthusiasts using <code>pStats</code>, <code>cprofilev</code>, <code>snakeviz</code>, or other profile analysers.</p>
 
 <p>Here are screenshots of the &ldquo;icicle&rdquo; analysis of these files via <code>snakeviz</code>.</p>
 
@@ -336,7 +364,7 @@
 
 <p>Only the <code>EnumerationAsk</code> algorithm has been optimised for performance, and a lot of work remains to be done. Of these, my yet-to-be-finished work on <code>_evidence</code> and <code>truth</code> described in the previous <a href="../wrapping-up/#evidence">blog post</a> is arguably the most important.</p>
 
-<p>This blog is perhaps a good starting point for future contributors to get acquainted with PRacMLN, and select areas for optimisation. The profiles inserted in this blog post give a good idea about the evolution of the bottlenecks in PracMLN, and thus show the progress made so far and simultaneously point towards the work left to be done.</p>
+<p>This blog is perhaps a good starting point for future contributors to get acquainted with PracMLN, and select areas for optimisation. The profiles inserted in this blog post give a good idea about the evolution of the bottlenecks in PracMLN, and thus show the progress made so far and simultaneously point towards the work left to be done.</p>
 
 <p>I have learnt a lot from this GSoC project. I am extrememly thankful to my mentor Daniel Nyga, to the Insitute of Artificial Intelligence, University of Bremen, and to Google for offering me this great opportunity. I hope my work over this summer is useful to the open source community (I assure you my changes haven&rsquo;t done <a href="http://turnoff.us/image/en/what-your-code-looks-like.png">this</a>).</p>
 
