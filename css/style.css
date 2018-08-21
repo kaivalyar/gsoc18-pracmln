@@ -984,3 +984,10 @@ a.symbol:hover {
     color: rgb(30, 150, 40);
     font-weight: bold;
 }
+
+.github-buttons {
+    height: 1.3em;
+    max-width: 100px;
+    display: inline;
+    vertical-align: middle;
+}
