@@ -991,3 +991,9 @@ a.symbol:hover {
     display: inline;
     vertical-align: middle;
 }
+
+.home p {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    line-height: 1.5em;
+}
